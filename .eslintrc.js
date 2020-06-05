@@ -57,6 +57,7 @@ module.exports = {
 		"unicorn/filename-case": "off",
 		"unicorn/no-reduce": "off",
 		"unicorn/no-useless-undefined": "off",
+		"unicorn/prefer-spread": "off",
 		"unicorn/prevent-abbreviations": [
 			"error",
 			{
@@ -237,6 +238,7 @@ module.exports = {
 		"no-var": "error",
 		"object-shorthand": "error",
 		"prefer-const": "error",
+		"prefer-spread": "error",
 		"prefer-template": "error",
 	},
 	"settings": {
