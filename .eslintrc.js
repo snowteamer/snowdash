@@ -42,6 +42,11 @@ module.exports = {
 					"PropertyDescriptor",
 					"PropertyKey",
 					"Record",
+					// Custom types defined using TypeScript type syntax in
+					// typedef tags, which tsc accepted but which the JsDoc
+					// parser could not parse.
+					"Mutable",
+					"MutableArrayLike",
 				],
 			},
 		],
