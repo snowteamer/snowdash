@@ -60,6 +60,8 @@ module.exports = {
 
 		"unicorn/explicit-length-check": "off",
 		"unicorn/filename-case": "off",
+		"unicorn/no-nested-ternary": "off",
+		"unicorn/no-for-loop": "off",
 		"unicorn/no-reduce": "off",
 		"unicorn/no-useless-undefined": "off",
 		"unicorn/prefer-spread": "off",
@@ -97,8 +99,8 @@ module.exports = {
 		"default-case": "error",
 		"default-case-last": "error",
 		"default-param-last": "error",
-		"no-eval": "error",
 		"no-eq-null": "error",
+		"no-eval": "error",
 		"no-implicit-coercion": [
 			"error",
 			{"allow": ["!!", "~"]},
@@ -134,7 +136,7 @@ module.exports = {
 				"imports": "always-multiline",
 				"exports": "always-multiline",
 				// Not leaving "functions" as "never" is for ES2017 or higher.
-				"functions": "always-multiline",
+				"functions": "only-multiline",
 			}, // "never"
 		],
 		"comma-spacing": "error",
@@ -172,12 +174,18 @@ module.exports = {
 			"error",
 			"unix",
 		],
-		"max-len": "error",
+		"max-len": ["error", {
+		  ignoreComments: false,
+		  ignoreRegExpLiterals: true,
+		  ignoreStrings: true,
+		  ignoreTemplateLiterals: true,
+		  ignoreUrls: true,
+		}],
 		"new-cap": "error",
+		"newline-per-chained-call": ["error", { ignoreChainWithDepth: 3 }],
 		"no-continue": "off",
 		"no-lonely-if": "error",
 		"no-multiple-empty-lines": "off",
-		"no-nested-ternary": "warn",
 		"no-plusplus": "off",
 		"no-tabs": [
 			"error",
@@ -187,6 +195,9 @@ module.exports = {
 			"error",
 			// {"skipBlankLines": false, "ignoreComments": false}
 		],
+		"no-unneeded-ternary": "warn",
+		"no-whitespace-before-property": "error",
+		"nonblock-statement-body-position": "error",
 		"object-curly-spacing": [
 			"off", // "off"
 			// "never",
@@ -202,8 +213,8 @@ module.exports = {
 			},
 		],
 		"padded-blocks": [
-			"off", // "off",
-			// "always",
+			"error",
+			"never", // "always",
 			// {}
 		],
 		"quotes": [
@@ -227,6 +238,7 @@ module.exports = {
 			"error",
 			// { "ignoreCase": false }
 		],
+		"spaced-comment": "error",
 		// EcmaScript 6
 		// https://eslint.org/docs/rules/#ecmascript-6
 		// --------------------------------------------
