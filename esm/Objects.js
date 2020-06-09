@@ -1,16 +1,18 @@
 /**
- * @file Objects.js
- * Utilities for 'Object' objects, that is, objects whose internal class name
- * is "Object".
- * So for example they don't work for 'Array' or 'Function' objects.
+ * @file Objects.js - Utilities for Object objects.
  */
 
 /**
- * @typedef {Record<PropertyKey, *>} AnyObject
+ * An object whose prototype is the null value.
+ * - Unfortunately, TypeScript does not allow to express this type exactly
+ *   ([#1108](https://github.com/microsoft/TypeScript/issues/1108)).
+ *
+ * @template T
+ * @typedef {Record<PropertyKey, T>} BareObject
  */
 
 /**
- * @typedef {!AnyObject} NonPrimitive
+ * @typedef {!object} NonPrimitive
  */
 
 /**
@@ -30,7 +32,7 @@ if(typeof Symbol === "function" && typeof Symbol.toStringTag === "symbol") {
 /**
  * @type {Record<string, function(*): *>}
  */
-const factoriesByInternalClassName = {
+const factoriesByTag = {
 	"Array": (x) => new Array(x.length),
 	// Most functions are not clonable.
 	"AsyncFunction": (x) => x,
@@ -72,9 +74,9 @@ const factoriesByInternalClassName = {
  * A stricter version of the native 'Object.assign()' method,
  *   which throws if some argument is null or a primitive value.
  *
- * @param {AnyObject} object
- * @param {...AnyObject} otherObjects
- * @returns {object} The given object.
+ * @param {NonPrimitive} object
+ * @param {...NonPrimitive} otherObjects
+ * @returns {NonPrimitive} The given object.
  */
 Objects.assign = function assign(object, ...otherObjects) {
 	tc.expectNonPrimitive(object);
@@ -162,8 +164,8 @@ Objects.clone = function clone(
 		const proto = Reflect.getPrototypeOf(node);
 		setOfVisitedPrototypes.add(proto);
 
-		const className = Objects.getTag(node);
-		const factory = factoriesByInternalClassName[className];
+		const tag = Objects.getTag(node);
+		const factory = factoriesByTag[tag];
 		const rv = (factory ? factory(node) : Object.create(proto));
 
 		if(Object.getPrototypeOf(rv) !== proto) {
@@ -217,12 +219,12 @@ Objects.clone = function clone(
  * While copying non-primitive values, this version tries to preserve internal
  *  slots by calling an appropriate constructor.
  *
- * @param {AnyObject} object
+ * @param {NonPrimitive} object
  * @param {object} options
  * @param {boolean} [options.ignoreAttributes]
  * @param {boolean} [options.ignoreExtensibility]
  * @param {boolean} [options.ignoreSymbols]
- * @returns {object}
+ * @returns {NonPrimitive}
  */
 Objects.copy =
 	function copy(
@@ -246,21 +248,21 @@ Objects.copy =
 		);
 		/** @type {Record<PropertyKey, PropertyDescriptor>} */
 		const descriptorsByKey = {};
-		for(const propertyKey of propertyKeys) {
+		for(const key of propertyKeys) {
 			const descriptor = (
-				Object.getOwnPropertyDescriptor(object, propertyKey)
+				Object.getOwnPropertyDescriptor(object, key)
 			);
 			if(typeof descriptor === "undefined") continue;
 			// @ts-ignore
-			descriptorsByKey[propertyKey] = descriptor;
+			descriptorsByKey[key] = descriptor;
 			if(ignoreAttributes && "value" in descriptor) {
 				descriptor.configurable = true;
 				descriptor.enumerable = true;
 				descriptor.writable = true;
 			}
 		}
-		const className = Objects.getTag(object);
-		const factory = factoriesByInternalClassName[className];
+		const tag = Objects.getTag(object);
+		const factory = factoriesByTag[tag];
 		const rv = (factory ? factory(object) : Object.create(proto));
 		if(Object.getPrototypeOf(rv) !== proto) {
 			Reflect.setPrototypeOf(rv, proto);
@@ -273,8 +275,8 @@ Objects.copy =
 	};
 
 /**
- * @param {AnyObject} object
- * @param {...*} args
+ * @param {NonPrimitive} object
+ * @param {...!*} args
  * @returns {object}
  */
 Objects.copyAssign =
@@ -287,23 +289,27 @@ Objects.copyAssign =
 /**
  * @returns {object}
  */
-Objects.createNullObject = function createNullObject() {
-	const rv = Object.create(null);
-	const customSymbol = Symbol.for("nodejs.util.inspect.custom");
+Objects.createNullObject = (() => {
 	/**
+	 * @this {object} this
 	 * @param {number} depth
-	 * @param {{ stylize: (arg0: string, arg1: string) => any; }} options
+	 * @param {{stylize: function(string, string): *}} options
 	 * @returns {string}
 	 */
-	// @ts-ignore
-	rv[customSymbol] = function custom(depth, options) {
+	const customInspect = function custom(depth, options) {
+		void depth;
 		return options.stylize(
 			`[Object <${Object.keys(this).length}>]`,
 			"special",
 		);
 	};
-	return rv;
-};
+	return function createNullObject() {
+		const rv = Object.create(null);
+		const customSymbol = Symbol.for("nodejs.util.inspect.custom");
+		rv[customSymbol] = customInspect;
+		return rv;
+	};
+})();
 
 /**
  * Compares two values for deep equality.
@@ -348,7 +354,7 @@ Objects.deepEquals =
 	};
 
 /**
- * @param {AnyObject} object
+ * @param {NonPrimitive} object
  * @param {object} options
  * @param {string} options.alias
  * @param {string} options.original
@@ -356,13 +362,13 @@ Objects.deepEquals =
 Objects.defineAliasProperty =
 	function defineAliasProperty(object, options = {alias: "", original: ""}) {
 		tc.expectNonPrimitive(object);
+		tc.expectNonEmptyString(options.alias);
+		tc.expectNonEmptyString(options.original);
 		const {alias, original} = options;
-		const enumerable = Objects.hasEnumerableProperty(object, original);
-		tc.expectNonEmptyString(alias);
-		tc.expectNonEmptyString(original);
 		if(alias === original) {
 			throw new Error("Expected distinct options 'alias' and 'original'.");
 		}
+		const enumerable = Objects.hasEnumerableProperty(object, original);
 		Object.defineProperty(object, alias, {
 			"get"() {
 				return this[original];
@@ -376,25 +382,25 @@ Objects.defineAliasProperty =
 	};
 
 /**
- * @param {AnyObject} object
- * @param {string} propertyName
+ * @param {NonPrimitive} object
+ * @param {PropertyKey} key
  * @param {Function} predicate
  */
 Objects.defineCheckedProperty =
-	function defineCheckedProperty(object, propertyName, predicate) {
+	function defineCheckedProperty(object, key, predicate) {
 		tc.expectNonPrimitive(object);
-		tc.expectNonEmptyString(propertyName);
+		tc.expectPropertyKey(key);
 		tc.expectFunction(predicate);
-		let propertyValue = object[propertyName];
-		Object.defineProperty(object, propertyName, {
-			"get": function get() {
+		let propertyValue = object[key];
+		Object.defineProperty(object, key, {
+			"get"() {
 				return propertyValue;
 			},
-			"set": function set(arg) {
+			"set"(arg) {
 				if(!predicate(arg)) {
 					throw Object.assign(
 						new TypeError("Bad property value."),
-						{propertyName, arg, predicate},
+						{key, arg, predicate},
 					);
 				}
 				propertyValue = arg;
@@ -405,11 +411,12 @@ Objects.defineCheckedProperty =
 	};
 
 /**
- * @param {object} object
+ * @param {NonPrimitive} object
  * @returns {Array<string>}
  */
 Objects.getAllPropertyNames =
 	function getAllPropertyNames(object) {
+		tc.expectNonPrimitive(object);
 		const propertyNameSet = new Set(Object.getOwnPropertyNames(object));
 		let node = object;
 		while(node !== Object.prototype && node !== Function.prototype) {
@@ -422,12 +429,14 @@ Objects.getAllPropertyNames =
 	};
 
 /**
- * @param {object} object
- * @returns {Record<string, PropertyDescriptor>}
- * Does not include properties whose keys are symbols.
+ * - Does not include properties whose keys are symbols.
+ *
+ * @param {NonPrimitive} object
+ * @returns {BareObject<PropertyDescriptor>}
  */
 Objects.getOwnPropertyDescriptorsByName =
 	function getOwnPropertyDescriptorsByName(object) {
+		tc.expectNonPrimitive(object);
 		const rv = Object.create(null);
 		const ownPropertyNames = Object.getOwnPropertyNames(object);
 		for(const propertyName of ownPropertyNames) {
@@ -439,7 +448,7 @@ Objects.getOwnPropertyDescriptorsByName =
 	};
 
 /**
- * @param {object} object
+ * @param {NonPrimitive} object
  * @param {object} options
  * @param {boolean} [options.ignoreSymbols]
  * @returns {PropertyKey[][]}
@@ -489,13 +498,13 @@ Objects.getOwnPropertyPaths = function getOwnPropertyPaths(
  * Catches property access errors.
  * Does not include the values of properties whose keys are symbols.
  *
- * @param {Record<string, *>} object
+ * @param {NonPrimitive} object
  * @param {*} [fallbackValue] - A value to be used as property value when
  *   accessing a property causes an error.
  * @returns {string[]}
  */
 Objects.getOwnPropertyValues =
-	function getOwnPropertyValues(object, fallbackValue /* optional */) {
+	function getOwnPropertyValues(object, fallbackValue = undefined) {
 		tc.expectNonPrimitive(object);
 		const rv = [];
 		const names = Object.getOwnPropertyNames(object);
@@ -510,16 +519,14 @@ Objects.getOwnPropertyValues =
 	};
 
 /**
- * @param {object} object
- * @param {(string|symbol)} key
- * @returns {PropertyDescriptor?}
+ * @param {NonPrimitive} object
+ * @param {PropertyKey} key
+ * @returns {(PropertyDescriptor | undefined)}
  */
 Objects.getPropertyDescriptor =
 	function getPropertyDescriptor(object, key) {
 		tc.expectNonPrimitive(object);
-		if(!tc.isString(key) && !tc.isSymbol(key)) {
-			tc.throwNewTypeError("a property key");
-		}
+		tc.expectPropertyKey(key);
 		if(!(key in object)) return undefined;
 		let descriptor = Object.getOwnPropertyDescriptor(object, key);
 		let proto = object;
@@ -531,45 +538,173 @@ Objects.getPropertyDescriptor =
 	};
 
 /**
- * @param {Record<string, *>} object
- * @param {string} propertyName
+ * @param {NonPrimitive} object
+ * @param {PropertyKey} key
  * @returns {Array<*>}
  */
 Objects.getPropertyValueChain =
-	function getPropertyValueChain(object, propertyName) {
-		if(typeof Objects.iterPropertyValueChain === "function") {
-			return [...Objects.iterPropertyValueChain(object, propertyName)];
-		}
+	function getPropertyValueChain(object, key) {
+		return [...Objects.iterPropertyValueChain(object, key)];
+	};
+
+/**
+ * @param {NonPrimitive} object
+ * @returns {(Function | undefined)}
+ */
+Objects.getSpecies =
+	function getSpecies(object) {
 		tc.expectNonPrimitive(object);
-		tc.expectNonEmptyString(propertyName);
-		let propertyValue = object[propertyName];
-		const rv = [];
-		const visitedValueSet = new Set();
-		while(
-			tc.isNonPrimitive(propertyValue)
-			&& !visitedValueSet.has(propertyValue)
-		) {
-			visitedValueSet.add(propertyValue);
-			rv[rv.length] = propertyValue;
-			propertyValue = propertyValue[propertyName];
+		// @ts-ignore
+		if(typeof Symbol !== "function" || Symbol.species !== "symbol") {
+			return undefined;
 		}
-		return rv;
+		const species = object[Symbol.species];
+		if(typeof species === "function") return species;
+		return undefined;
+	};
+
+/**
+ * @param {object} object
+ * @returns {string}
+ */
+Objects.getTag =
+	function getTag(object) {
+		tc.expectNonPrimitive(object);
+		// @ts-ignore
+		if(typeof Symbol === "function" && Symbol.toStringTag === "symbol") {
+			const tag = object[Symbol.toStringTag];
+			if(typeof tag === "string") return tag;
+		}
+		return Object.prototype.toString.call(object).slice("[object ".length, -1);
+	};
+
+/**
+ * @param {NonPrimitive} object
+ * @param {PropertyKey} key
+ * @returns {boolean}
+ */
+Objects.hasAccessorProperty =
+	function hasAccessorProperty(object, key) {
+		tc.expectNonPrimitive(object);
+		tc.expectPropertyKey(key);
+		if(!(key in object)) return false;
+		const descriptor = Objects.getPropertyDescriptor(object, key);
+		if(descriptor === null || descriptor === undefined) return false;
+		return "get" in descriptor || "set" in descriptor;
+	};
+
+/**
+ * @param {NonPrimitive} object
+ * @param {PropertyKey} key
+ * @returns {boolean}
+ */
+Objects.hasConfigurableProperty =
+	function hasConfigurableProperty(object, key) {
+		tc.expectNonPrimitive(object);
+		tc.expectPropertyKey(key);
+		const descriptor = (
+			Object.getOwnPropertyDescriptor(object, key)
+		);
+		if(descriptor === null || descriptor === undefined) return false;
+		return descriptor.configurable === true;
+	};
+
+/**
+ * @param {NonPrimitive} object
+ * @param {PropertyKey} key
+ * @returns {boolean}
+ */
+Objects.hasDataProperty =
+	function hasDataProperty(object, key) {
+		tc.expectNonPrimitive(object);
+		tc.expectPropertyKey(key);
+		if(!(key in object)) return false;
+		const descriptor = Objects.getPropertyDescriptor(object, key);
+		if(descriptor === null || descriptor === undefined) return false;
+		return "value" in descriptor;
+	};
+
+/**
+ * @param {NonPrimitive} object
+ * @param {PropertyKey} key
+ * @returns {boolean}
+ */
+Objects.hasEnumerableProperty =
+	function hasEnumerableProperty(object, key) {
+		tc.expectNonPrimitive(object);
+		tc.expectPropertyKey(key);
+		return Object.prototype.propertyIsEnumerable.call(object, key);
+	};
+
+/**
+ * @param {NonPrimitive} object
+ * @param {PropertyKey} key
+ * @returns {boolean}
+ */
+Objects.hasOwnAccessorProperty =
+	function hasOwnAccessorProperty(object, key) {
+		tc.expectNonPrimitive(object);
+		tc.expectPropertyKey(key);
+		const descriptor = Object.getOwnPropertyDescriptor(object, key);
+		if(descriptor === undefined) return false;
+		return "get" in descriptor || "set" in descriptor;
+	};
+
+/**
+ * @param {NonPrimitive} object
+ * @param {PropertyKey} key
+ * @returns {boolean}
+ */
+Objects.hasOwnDataProperty =
+	function hasOwnDataProperty(object, key) {
+		tc.expectNonPrimitive(object);
+		tc.expectPropertyKey(key);
+		const descriptor = Object.getOwnPropertyDescriptor(object, key);
+		if(descriptor === undefined) return false;
+		return "value" in descriptor;
+	};
+
+/**
+ * @param {NonPrimitive} object
+ * @param {PropertyKey} key
+ * @returns {boolean}
+ */
+Objects.hasOwnProperty =
+	function hasOwnProperty(object, key) {
+		tc.expectNonPrimitive(object);
+		tc.expectPropertyKey(key);
+		return Object.prototype.hasOwnProperty.call(object, key);
+	};
+
+/**
+ * @param {NonPrimitive} object
+ * @param {PropertyKey} key
+ * @returns {boolean}
+ */
+Objects.hasWritableProperty =
+	function hasWritableProperty(object, key) {
+		tc.expectNonPrimitive(object);
+		tc.expectPropertyKey(key);
+		const descriptor = (
+			Object.getOwnPropertyDescriptor(object, key)
+		);
+		return descriptor ? descriptor.writable === true : false;
 	};
 
 /**
  * @generator
- * @param {Record<string, *>} object
- * @param {string} propertyName
+ * @param {NonPrimitive} object
+ * @param {PropertyKey} propertyKey
  * @yields {*}
  */
 Objects.iterPropertyValueChain =
-	function* iterPropertyValueChain(object, propertyName) {
+	function* iterPropertyValueChain(object, propertyKey) {
 		tc.expectNonPrimitive(object);
-		tc.expectNonEmptyString(propertyName);
+		tc.expectPropertyKey(propertyKey);
 		let currentValue = object;
 		const visitedObjects = new WeakSet();
-		while(propertyName in currentValue) {
-			currentValue = currentValue[propertyName];
+		while(propertyKey in currentValue) {
+			currentValue = currentValue[propertyKey];
 			if(visitedObjects.has(currentValue)) return;
 			if(new Object(currentValue) === currentValue) {
 				visitedObjects.add(currentValue);
@@ -577,139 +712,6 @@ Objects.iterPropertyValueChain =
 			yield currentValue;
 			if(currentValue === undefined || currentValue === null) return;
 		}
-	};
-
-/**
- * @param {object} object
- * @returns {string=}
- */
-Objects.getTag =
-	function getTag(object) {
-		tc.expectNonPrimitive(object);
-		if(typeof Symbol !== "function" || Symbol.toStringTag !== "symbol") {
-			return undefined;
-		}
-		const tag = object[Symbol.toStringTag];
-		if(typeof tag === "string") return tag;
-		return undefined;
-	};
-
-/**
- * @param {object} object
- * @param {string} key
- * @returns {boolean}
- */
-Objects.hasAccessorProperty =
-	function hasAccessorProperty(object, key) {
-		tc.expectNonPrimitive(object);
-		if(!tc.isString(key) && !tc.isSymbol(key)) {
-			tc.throwNewTypeError("a property key");
-		}
-		if(!(key in object)) return false;
-		const descriptor = Objects.getPropertyDescriptor(object, key);
-		if(descriptor === null) return false;
-		return "get" in descriptor || "set" in descriptor;
-	};
-
-/**
- * @param {Record<string, *>} object
- * @param {string} propertyKey
- * @returns {boolean}
- */
-Objects.hasConfigurableProperty =
-	function hasConfigurableProperty(object, propertyKey) {
-		tc.expectInstanceOf(object, Object);
-		const descriptor = (
-			Object.getOwnPropertyDescriptor(object, propertyKey)
-		);
-		return descriptor ? descriptor.configurable === true : false;
-	};
-
-/**
- * @param {Record<string, *>} object
- * @param {string} key
- * @returns {boolean}
- */
-Objects.hasDataProperty =
-	function hasDataProperty(object, key) {
-		tc.expectNonPrimitive(object);
-		if(!tc.isString(key) && !tc.isSymbol(key)) {
-			tc.throwNewTypeError("a property key");
-		}
-		if(!(key in object)) return false;
-		const descriptor = Objects.getPropertyDescriptor(object, key);
-		if(descriptor === null) return false;
-		return "value" in descriptor;
-	};
-
-/**
- * @param {Record<string, *>} object
- * @param {string} propertyKey
- * @returns {boolean}
- */
-Objects.hasEnumerableProperty =
-	function hasEnumerableProperty(object, propertyKey) {
-		return Object.prototype.propertyIsEnumerable.call(object, propertyKey);
-	};
-
-/**
- * @param {object} object
- * @param {string} key
- * @returns {boolean}
- */
-Objects.hasOwnAccessorProperty =
-	function hasOwnAccessorProperty(object, key) {
-		tc.expectNonPrimitive(object);
-		if(!tc.isString(key) && !tc.isSymbol(key)) {
-			tc.throwNewTypeError("a property key");
-		}
-		const descriptor = Object.getOwnPropertyDescriptor(object, key);
-		if(descriptor === undefined) return false;
-		return "get" in descriptor || "set" in descriptor;
-	};
-
-/**
- * @param {Record<string, *>} object
- * @param {string} key
- * @returns {boolean}
- */
-Objects.hasOwnDataProperty =
-	function hasOwnDataProperty(object, key) {
-		tc.expectNonPrimitive(object);
-		if(!tc.isString(key) && !tc.isSymbol(key)) {
-			tc.throwNewTypeError("a property key");
-		}
-		const descriptor = Object.getOwnPropertyDescriptor(object, key);
-		if(descriptor === undefined) return false;
-		return "value" in descriptor;
-	};
-
-/**
- * @param {Record<string, *>} object
- * @param {string} key
- * @returns {boolean}
- */
-Objects.hasOwnProperty =
-	function hasOwnProperty(object, key) {
-		tc.expectNonPrimitive(object);
-		if(!tc.isString(key) && !tc.isSymbol(key)) {
-			tc.throwNewTypeError("a property key");
-		}
-		return Object.prototype.hasOwnProperty.call(object, key);
-	};
-
-/**
- * @returns {boolean}
- * @param {object} object
- * @param {string} propertyKey
- */
-Objects.hasWritableProperty =
-	function hasWritableProperty(object, propertyKey) {
-		tc.expectNonPrimitive(object);
-		const descriptor = (
-			Object.getOwnPropertyDescriptor(object, propertyKey)
-		);
-		return descriptor ? descriptor.writable === true : false;
 	};
 
 /**
