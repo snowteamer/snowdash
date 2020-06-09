@@ -174,13 +174,16 @@ module.exports = {
 			"error",
 			"unix",
 		],
-		"max-len": ["error", {
-		  ignoreComments: false,
-		  ignoreRegExpLiterals: true,
-		  ignoreStrings: true,
-		  ignoreTemplateLiterals: true,
-		  ignoreUrls: true,
-		}],
+		"max-len": [
+			"error",
+			{
+				ignoreComments: false,
+				ignoreRegExpLiterals: true,
+				ignoreStrings: true,
+				ignoreTemplateLiterals: true,
+				ignoreUrls: true,
+			},
+		],
 		"new-cap": "error",
 		"newline-per-chained-call": ["error", { ignoreChainWithDepth: 3 }],
 		"no-continue": "off",
