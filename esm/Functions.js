@@ -5,6 +5,10 @@
 /* eslint-disable no-invalid-this */
 
 /**
+ * @typedef {!object} NonPrimitive
+ */
+
+/**
  * @typedef {number} uint
  */
 
@@ -77,7 +81,6 @@ Functions.identity = function identity(arg) {
 	return arg;
 };
 Functions.noop = function noop() {
-	;
 };
 Functions.not = function not(arg) {
 	return !arg;
@@ -224,12 +227,20 @@ Functions.memoize =
 		const hashFunction = options && options.hashFunction;
 		tc.expectFunction(hashFunction);
 		const cache = new Map();
+		/**
+		 * @this {any} any
+		 * @param {...*} args
+		 * @property {boolean} closed
+		 * @returns {*}
+		 */
 		const wrapper = function wrapper(...args) {
-			// @ts-ignore
-			if(wrapper.closed) return Functions.call(fn, this, ...args);
+			if(wrapper.closed) {
+				// @ts-ignore
+				return Functions.call(fn, this, ...args);
+			}
 			const cacheKey = hashFunction(args);
-			// @ts-ignore
 			if(!cache.has(cacheKey)) {
+				// @ts-ignore
 				cache.set(cacheKey, Functions.call(fn, this, ...args));
 			}
 			return cache.get(cacheKey);
@@ -239,8 +250,6 @@ Functions.memoize =
 		Functions.cachesByFunction.set(wrapper, cache);
 		Functions.wrappedFunctionsByCache.set(cache, fn);
 		Functions.wrapperFunctionsByCache.set(cache, wrapper);
-		// wrapper.wrapped = fn;
-		// wrapper.cache = cache;
 		return wrapper;
 	};
 
@@ -249,15 +258,15 @@ Functions.memoize =
  *   by a memoized version.
  * - Currently does not take property attributes into account.
  *
- * @param {object} object
- * @param {string} propertyName
+ * @param {NonPrimitive} object
+ * @param {PropertyKey} key
  */
 Functions.memoizeMethod =
-	function memoizeMethod(object, propertyName) {
+	function memoizeMethod(object, key) {
 		tc.expectNonPrimitive(object);
-		tc.expectString(propertyName);
-		tc.expectFunction(object[propertyName]);
-		object[propertyName] = Functions.memoize(object[propertyName]);
+		tc.expectString(key);
+		tc.expectFunction(object[key]);
+		object[key] = Functions.memoize(object[key]);
 	};
 
 /**
@@ -283,58 +292,42 @@ Functions.unmemoize =
 	};
 
 /**
- * Currently does not take property attributes into account.
+ * Replaces the given memoized method of the given object
+ *   by its original version.
+ * - Currently does not take property attributes into account.
  *
- * @param {object} object
- * @param {string} propertyName
+ * @param {NonPrimitive} object
+ * @param {PropertyKey} key
  */
 Functions.unmemoizeMethod =
-	function unmemoizeMethod(object, propertyName) {
+	function unmemoizeMethod(object, key) {
 		tc.expectNonPrimitive(object);
-		tc.expectString(propertyName);
-		object[propertyName] = Functions.unmemoize(object[propertyName]);
+		tc.expectString(key);
+		object[key] = Functions.unmemoize(object[key]);
 	};
 
 // ===== end of section 'Memoization utilities' ===== //
 
 /**
- * Calls the given function `n` times,
- *   then returns an array of the results.
- *
- * @param {Function} f
- * @param {uint} n
- * @param {*} thisArg
- * @param {...*} args
- * @returns {Array}
- */
-Functions.callNTimes =
-	function callNTimes(f, n, thisArg, ...args) {
-		tc.expectFunction(f);
-		tc.expectPositiveInteger(n);
-		const rv = [];
-		for(let i = 0; i < n; i++) {
-			rv[i] = Functions.call(f, thisArg, ...args);
-		}
-		return rv;
-	};
-
-/**
  * @param {function(*): boolean} predicate
  * @returns {function(*): boolean}
- * @see https://lodash.com/docs/#negate
  */
 Functions.complement =
 	function complement(predicate) {
 		tc.expectFunction(predicate);
-		return function wrapper(...args) {
+		return function complementWrapper(...args) {
 			// @ts-ignore
 			return !Functions.apply(predicate, this, args);
 		};
 	};
 
 /**
+ * Creates a wrapper around the given function,
+ *   which represents the composition of the given functions.
+ * - The last given function will be called first.
+ *
  * @param {...Function} functions
- * @returns {Function}
+ * @returns {function(this: *)}
  * @example
  * const inverseMax = Functions.compose((x) => 1 / x, Math.max);
  * assert(inverseMax(1, 5, 2) === 0.2);
@@ -342,7 +335,7 @@ Functions.complement =
 Functions.compose =
 	function compose(...functions) {
 		tc.expectFunctions(functions);
-		return function wrapper(...args) {
+		return function composeWrapper(...args) {
 			return functions.slice(0, -1).reduce(
 				// @ts-ignore
 				(acc, fn) => Functions.call(fn, this, acc),
@@ -369,17 +362,41 @@ Functions.once =
 	};
 
 /**
+ * Creates a wrapper around the given function.
+ * - When called, it will call the given function `n` times,
+ *   then returns an array of the results.
+ *
+ * @param {Function} f
+ * @param {uint} nTimes
+ * @returns {function(this: *): *[]}
+ */
+Functions.repeat =
+	function repeat(f, nTimes) {
+		tc.expectFunction(f);
+		tc.expectPositiveInteger(nTimes);
+		return function repeatWrapper(...args) {
+			const rv = [];
+			for(let i = 0; i < nTimes; i++) {
+				// @ts-ignore
+				rv[i] = Functions.call(f, this, ...args);
+			}
+			return rv;
+		};
+	};
+
+/**
+ * Creates a wrapper around the given function,
+ *   with the given arguments partially applied.
+ *
  * @param {Function} fn
  * @param {...*} args
- * @returns {Function} A wrapper around the given function,
- *  with the given arguments partially applied.
- * Does not bind a 'this' value to the returned function.
+ * @returns {Function}
  */
 Functions.partial =
 	function partial(fn, ...args) {
 		tc.expectFunction(fn);
 		const partialArguments = args;
-		return function wrapper(...args) {
+		return function partialWrapper(...args) {
 			// @ts-ignore
 			return Functions.call(fn, this, ...partialArguments, ...args);
 		};
@@ -387,23 +404,23 @@ Functions.partial =
 
 /**
  * @param {Function} f
- * @param {uint} n
+ * @param {uint} arity
  * @returns {Function}
  */
 Functions.withArity =
-	function withArity(f, n) {
+	function withArity(f, arity) {
 		tc.expectFunction(f);
-		tc.expectPositiveInteger(n);
-		return function wrapper(...args) {
+		tc.expectPositiveInteger(arity);
+		return function withArityWrapper(...args) {
 			// @ts-ignore
-			return Functions.call(f, this, ...args.slice(0, n));
+			return Functions.call(f, this, ...args.slice(0, arity));
 		};
 	};
 
 /**
  * Creates a wrapper around the given function.
- * - For at most n calls, it will delegate to the given function.
- * - For subsequent calls, it will return the last return value without
+ * - For the given number of calls, it will delegate to the given function.
+ * - On subsequent calls, it will return the last return value without
  *     invoking the given function.
  *
  * @param {Function} f
@@ -416,7 +433,7 @@ Functions.withLimit =
 		tc.expectPositiveInteger(nTimes);
 		let cache;
 		let n = nTimes;
-		return function wrapper(...args) {
+		return function withLimitWrapper(...args) {
 			if(n === 0) return cache;
 			// @ts-ignore
 			const rv = Functions.call(f, this, ...args);
