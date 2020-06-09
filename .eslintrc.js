@@ -61,6 +61,7 @@ module.exports = {
 		"unicorn/explicit-length-check": "off",
 		"unicorn/filename-case": "off",
 		"unicorn/no-nested-ternary": "off",
+		"unicorn/no-fn-reference-in-iterator": "off",
 		"unicorn/no-for-loop": "off",
 		"unicorn/no-reduce": "off",
 		"unicorn/no-useless-undefined": "off",
