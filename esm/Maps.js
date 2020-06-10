@@ -34,6 +34,16 @@ if(typeof Symbol === "function" && typeof Symbol.toStringTag === "symbol") {
 const call = Function.prototype.call.bind(Function.prototype.call);
 
 /**
+ * @template V
+ * @param {Record<PropertyKey, V>} object
+ * @returns {Map<string, V>}
+ */
+Maps.fromPlainObject = function fromPlainObject(object) {
+	tc.expectNonPrimitive(object);
+	return new Map(Object.entries(object));
+};
+
+/**
  * @template K, V
  * @param {Map<K, V>} map
  * @param {MapPredicate<K, V>} predicate
