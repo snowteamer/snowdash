@@ -33,17 +33,6 @@ if(typeof Symbol === "function" && typeof Symbol.toStringTag === "symbol") {
 
 const call = Function.prototype.call.bind(Function.prototype.call);
 
-
-Maps.fromKeysAndValues = function fromKeysAndValues(keys, values) {
-	tc.expectArrayLike(keys);
-	tc.expectArrayLike(values);
-	const rv = new Map();
-	for(let i = 0; i < keys.length; i++) {
-		rv.set(keys[i], values[i]);
-	}
-	return rv;
-};
-
 /**
  * @template K, V
  * @param {Map<K, V>} map
