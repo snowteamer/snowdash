@@ -805,9 +805,9 @@ Arrays.generateTuples = function* generateTuples(list, k) {
  * @param {uint} [radius=1]
  * @returns {T[]}
  * @example
- * Arrays.getNeighbourhood("azertyuiop", 3, 2); // [ 'z', 'e', 'r', 't', 'y' ]
+ * Arrays.getNeighborhood("azertyuiop", 3, 2); // [ 'z', 'e', 'r', 't', 'y' ]
  */
-Arrays.getNeighbourhood = function getNeighbourhood(list, index, radius = 1) {
+Arrays.getNeighborhood = function getNeighborhood(list, index, radius = 1) {
 	tc.expectInteger(index);
 	tc.expectPositiveInteger(radius);
 	const origin = (index >= 0 ? index : list.length + index);
@@ -815,6 +815,36 @@ Arrays.getNeighbourhood = function getNeighbourhood(list, index, radius = 1) {
 		list,
 		Math.max(0, origin - radius),
 		origin + radius + 1
+	);
+};
+
+/**
+ * The returned slice may be shorter if a boundary was encountered.
+ *
+ * @template T
+ * @param {ArrayLike<T>} list
+ * @param {int} sliceStart
+ * @param {int} sliceEnd
+ * @param {uint} [radius=1]
+ * @returns {T[]}
+ * @example
+ * Arrays.getNeighborhoodOfSlice("azertyuiop", 2, 3); // [ 'z', 'e', 'r', 't', 'y' ]
+ */
+Arrays.getNeighborhoodOfSlice = function getNeighborhoodOfSlice(
+	list,
+	sliceStart,
+	sliceEnd,
+	radius = 1
+) {
+	tc.expectInteger(sliceStart);
+	tc.expectInteger(sliceEnd);
+	tc.expectPositiveInteger(radius);
+	const slice0 = (sliceStart >= 0 ? sliceStart : list.length + sliceStart);
+	const slice1 = (sliceEnd >= 0 ? sliceEnd: list.length + sliceEnd);
+	return slice(
+		list,
+		Math.max(0, slice0 - radius),
+		slice1 + radius
 	);
 };
 
