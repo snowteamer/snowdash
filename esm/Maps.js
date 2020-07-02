@@ -34,6 +34,32 @@ if(typeof Symbol === "function" && typeof Symbol.toStringTag === "symbol") {
 const call = Function.prototype.call.bind(Function.prototype.call);
 
 /**
+ * @param {Iterable<*>} [iterable]
+ * @returns {Map<*, *>}
+ */
+Maps.createMap = (() => {
+	/**
+	 * @this {object} this
+	 * @param {number} depth
+	 * @param {{stylize: function(string, string): *}} options
+	 * @returns {string}
+	 */
+	const customInspect = function custom(depth, options) {
+		void depth;
+		return options.stylize(
+			`[Map <${this.size}>]`,
+			"special",
+		);
+	};
+	return function createMap(iterable = undefined) {
+		const rv = new Map(iterable);
+		const customSymbol = Symbol.for("nodejs.util.inspect.custom");
+		rv[customSymbol] = customInspect;
+		return rv;
+	};
+})();
+
+/**
  * @template V
  * @param {Record<PropertyKey, V>} object
  * @returns {Map<string, V>}
