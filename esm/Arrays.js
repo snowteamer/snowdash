@@ -802,12 +802,12 @@ Arrays.generateTuples = function* generateTuples(list, k) {
  * @template T
  * @param {ArrayLike<T>} list
  * @param {int} index
- * @param {uint} radius
+ * @param {uint} [radius=1]
  * @returns {T[]}
  * @example
  * Arrays.getNeighbourhood("azertyuiop", 3, 2); // [ 'z', 'e', 'r', 't', 'y' ]
  */
-Arrays.getNeighbourhood = function getNeighbourhood(list, index, radius) {
+Arrays.getNeighbourhood = function getNeighbourhood(list, index, radius = 1) {
 	tc.expectInteger(index);
 	tc.expectPositiveInteger(radius);
 	const origin = (index >= 0 ? index : list.length + index);
