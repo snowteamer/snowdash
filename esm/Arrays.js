@@ -386,12 +386,13 @@ Arrays.count = function count(list, arg) {
 /**
  * @template T
  * @param {ArrayLike<T>} list
- * @param {T} a
- * @param {T} b
+ * @param {[T, T]} bigram
  * @returns {uint}
  */
-Arrays.countBigram = function countBigram(list, a, b) {
+Arrays.countBigram = function countBigram(list, bigram) {
 	tc.expectArrayLike(list);
+	tc.expectArrayLike(bigram);
+	const [a, b] = bigram;
 	let rv = 0;
 	for(let i = 0; i < list.length - 1; i++) {
 		if(list[i] === a && list[i + 1] === b) {
