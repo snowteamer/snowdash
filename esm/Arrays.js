@@ -525,6 +525,7 @@ Arrays.createDuplicateSet = function createDuplicateSet(list) {
 		if(visitedValues.has(element)) {
 			rv.add(element);
 		}
+		else visitedValues.add(element);
 	}
 	return rv;
 };
