@@ -84,6 +84,18 @@ Objects.assign = function assign(object, ...otherObjects) {
 	return Object.assign(object, ...otherObjects);
 };
 
+/**
+ * Deletes all the enumerable own properties of the given object.
+ *
+ * @param {NonPrimitive} object
+ */
+Objects.clear = function clear(object) {
+	tc.expectNonPrimitive(object);
+	for(const key of Object.keys(object)) {
+		delete object[key];
+	}
+};
+
 /*
  * A 'copy' function or method must be shallow.
  * A 'clone' function or method must be deep.
