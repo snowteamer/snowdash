@@ -359,6 +359,22 @@ Arrays.contains = function contains(list, arg) {
 /**
  * @template T
  * @param {ArrayLike<T>} list
+ * @param {ArrayLike<T>} otherList
+ * @returns {boolean}
+ */
+Arrays.containsAll = function containsAll(list, otherList) {
+	tc.expectArrayLike(list);
+	for(let i = 0; i < otherList.length; i++) {
+		if(!Array.prototype.includes.call(list, otherList[i])) {
+			return false;
+		}
+	}
+	return true;
+};
+
+/**
+ * @template T
+ * @param {ArrayLike<T>} list
  * @returns {T[]}
  */
 Arrays.copy = function copy(list) {
