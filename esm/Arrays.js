@@ -259,11 +259,12 @@ Arrays.add = function add(list, arg) {
 /**
  * @template T
  * @param {ArrayLike<T>} list
- * @param {...T} args
+ * @param {ArrayLike<T>} otherList
  */
-Arrays.addAll = function addAll(list, ...args) {
+Arrays.addAll = function addAll(list, otherList) {
 	tc.expectArrayLike(list);
-	Array.prototype.push.call(list, ...args);
+	tc.expectArrayLike(otherList);
+	Array.prototype.push.call(list, otherList);
 };
 
 /**

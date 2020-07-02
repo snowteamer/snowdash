@@ -191,11 +191,12 @@ Maps.copy = function copy(map) {
 /**
  * @template K, V
  * @param {Map<K, V>} map
- * @param {...*} keys
+ * @param {[*]} keys
  */
-Maps.deleteAll = function deleteAll(map, ...keys) {
+Maps.deleteAll = function deleteAll(map, keys) {
 	tc.expectMap(map);
-	for(const key of keys) map.delete(key);
+	tc.expectArrayLike(keys);
+	for(let i = 0; i < keys.length; i++) map.delete(keys[i]);
 };
 
 /**
@@ -393,12 +394,12 @@ Maps.mergeWith = function mergeWith(fn, ...maps) {
 /**
  * @template K, V
  * @param {Map<K, V>} map
- * @param {...[*, *]} entries
+ * @param {[*, *][]} entries
  */
-Maps.setAll = function setAll(map, ...entries) {
+Maps.setAll = function setAll(map, entries) {
 	tc.expectMap(map);
 	tc.expectArrays(entries);
-	for(const [key, value] of entries) map.set(key, value);
+	for(let i = 0; i < entries.length; i++) map.set(entry[0], entry[1]);
 };
 
 /**

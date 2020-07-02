@@ -176,11 +176,11 @@ Sets.some = function some(set, fn, thisArg = undefined) {
 /**
  * @template T
  * @param {Set<T>} set
- * @param {...T} args
+ * @param {T[]} args
  */
-Sets.addAll = function addAll(set, ...args) {
+Sets.addAll = function addAll(set, args) {
 	tc.expectSet(set);
-	for(const arg of args) set.add(arg);
+	for(let i = 0; i < args.length; i++) set.add(args[i]);
 };
 
 /**
@@ -198,25 +198,25 @@ Sets.areDisjoint = function areDisjoint(set, ...otherSets) {
 /**
  * @template T
  * @param {Set<T>} set
- * @param {...T} args
+ * @param {T[]} args
  */
-Sets.deleteAll = function deleteAll(set, ...args) {
+Sets.deleteAll = function deleteAll(set, args) {
 	tc.expectSet(set);
-	for(const arg of args) {
-		set.delete(arg);
-	}
+	tc.expectArrayLike(args);
+	for(let i = 0; i < args.length; i++) set.delete(args[i]);
 };
 
 /**
  * @template T
  * @param {Set<T>} set
- * @param {...T} args
+ * @param {T[]} args
  * @returns {boolean}
  */
-Sets.hasAll = function hasAll(set, ...args) {
+Sets.hasAll = function hasAll(set, args) {
 	tc.expectSet(set);
-	for(const arg of args) {
-		if(!set.has(arg)) return false;
+	tc.expectArrayLike(args);
+	for(let i = 0; i < args.length; i++) {
+		if(!set.has(args[i])) return false;
 	}
 	return true;
 };
