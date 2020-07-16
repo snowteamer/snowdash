@@ -264,7 +264,7 @@ Arrays.add = function add(list, arg) {
 Arrays.addAll = function addAll(list, otherList) {
 	tc.expectArrayLike(list);
 	tc.expectArrayLike(otherList);
-	Array.prototype.push.call(list, otherList);
+	Array.prototype.push.call(list, ...otherList);
 };
 
 /**
