@@ -251,19 +251,20 @@ Maps.has = function has(map, ...keys) {
 /**
  * @template K, V
  * @param {Map<K, V>} map
- * @param {...[*, *]} entries
+ * @param {[*, *]} entry
  * @returns {boolean}
  */
-Maps.hasEntry = function has(map, ...entries) {
+Maps.hasEntry = function hasEntry(map, entry) {
 	tc.expectMap(map);
-	tc.expectNonEmptyArrayLike(entries);
-	for(const [key, value] of entries) {
-		if(value === undefined) {
-			if(!map.has(key)) return false;
-		}
-		if(!Object.is(map.get(key), value)) return false;
+	tc.expectArray(entry);
+	if(entry.length !== 2) {
+		throw new TypeError("a map entry must be an array whose length is 2.");
 	}
-	return true;
+	const [key, value] = entry;
+	if(value === undefined) {
+		if(!map.has(key)) return false;
+	}
+	return Object.is(map.get(key), value);
 };
 
 /**
