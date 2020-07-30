@@ -656,6 +656,39 @@ Arrays.createRange = function createRange(to) {
 };
 
 /**
+ * Creates an integer range.
+ *
+ * @param {int} from
+ * @param {int} to
+ * @param {int} [step=1]
+ * @param {index} to
+ * @returns {int[]}
+ * @example Arrays.createRangeFromTo(1, 5); // -> [1, 2, 3, 4]
+ * @example Arrays.createRangeFromTo(1, -5, -1); // -> [1, 0, -1, -2, -3, -4]
+ */
+Arrays.createRangeFromTo = function createRangeFromTo(from, to, step = 1) {
+	tc.expectInteger(from);
+	tc.expectInteger(to);
+	tc.expectInteger(step);
+	if(step === 0) {
+		throw new TypeError("argument 'step' cannot be 0.");
+	}
+	if(from > to && step > 0) {
+		throw new TypeError(
+			"argument 'to' cannot be lower than 'from' unless 'step' is negative."
+		);
+	}
+	if(from < to && step < 0) {
+		throw new TypeError(
+			"argument 'to' cannot be greater than 'from' since 'step' is negative."
+		);
+	}
+	if(step === 1) return Array.from(new Array(to - from), (_, i) => from + i);
+	if(step === -1) return Array.from(new Array(from - to), (_, i) => from - i);
+	return Array.from(new Array(Math.floor(Math.abs(from - to) / step)), (_, i) => from + i * step);
+};
+
+/**
  * @template T, U
  * @param {T[]} list
  * @param {U[]} otherList
