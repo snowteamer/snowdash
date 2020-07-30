@@ -644,6 +644,18 @@ Arrays.createPermutation = function createPermutation(list, indices) {
 };
 
 /**
+ * Creates an integer range from 0 to the given integer, not including it.
+ *
+ * @param {index} to
+ * @returns {index[]}
+ * @example Arrays.createRange(5); // -> [0, 1, 2, 3, 4]
+ */
+Arrays.createRange = function createRange(to) {
+	tc.expectPositiveInteger(to);
+	return [...new Array(to).keys()];
+};
+
+/**
  * @template T, U
  * @param {T[]} list
  * @param {U[]} otherList
