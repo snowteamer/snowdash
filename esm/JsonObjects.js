@@ -217,37 +217,6 @@ JsonObjects.deleteByPath =
 /**
  * @param {object} object
  * @param {object} otherObject
- * @returns {boolean}
- */
-JsonObjects.deepEquals =
-	function deepEquals(object, otherObject) {
-		tc.expectNonPrimitive(object);
-		if(object === otherObject) return true;
-		if(typeof object !== "object" || typeof otherObject !== "object") {
-			return false;
-		}
-		if(object === null || otherObject === null) return false;
-		if(Array.isArray(object)) {
-			return Arrays.deepEquals(object, otherObject);
-		}
-		for(const key in object) {
-			if(hasOwnProperty(object, key)) {
-				if(!deepEquals(object[key], otherObject[key])) return false;
-			}
-		}
-		for(const otherKey in otherObject) {
-			if(hasOwnProperty(otherObject, otherKey)) {
-				if(!deepEquals(otherObject[otherKey], object[otherKey])) {
-					return false;
-				}
-			}
-		}
-		return true;
-	};
-
-/**
- * @param {object} object
- * @param {object} otherObject
  * @returns {object}
  */
 JsonObjects.difference =
@@ -262,6 +231,51 @@ JsonObjects.difference =
 		}
 		return rv;
 	};
+
+/**
+ * Checks whether two JSON objects are deeply equal.
+ *
+ * - Properties whose value is 'undefined' are allowed but ignored.
+ *
+ * @param {object} object
+ * @param {object} otherObject
+ * @returns {boolean}
+ */
+JsonObjects.equals = function equals(object, otherObject) {
+	tc.expectNonPrimitive(object);
+	tc.expectNonPrimitive(otherObject);
+	if(object === otherObject) return true;
+	if(Array.isArray(object)) {
+		if(!Array.isArray(otherObject)) return false;
+		const array = object;
+		const otherArray = otherObject;
+		if(array.length !== otherArray.length) return false;
+		for(let i = 0; i < array.length; i++) {
+			const element = array[i];
+			const otherElement = otherArray[i];
+			if(tc.isPrimitive(element)) {
+				if(!Object.is(element, otherElement)) return false;
+			} else {
+				if(!equals(element, otherElement)) return false;
+			}
+		}
+		return true;
+	}
+	if(Array.isArray(otherObject)) return false;
+	for(const [key, value] of Object.entries(object)) {
+		if(value === undefined) continue;
+		if(tc.isPrimitive(value)) {
+			if(!Object.is(value, otherObject[key])) return false;
+		} else {
+			if(!equals(value, otherObject[key])) return false;
+		}
+	}
+	for(const [key, value] of Object.entries(otherObject)) {
+		if(value === undefined) continue;
+		if(!hasOwnProperty(object, key)) return false;
+	}
+	return true;
+};
 
 /**
  * @param {object} object
@@ -543,39 +557,6 @@ JsonObjects.setByPath =
 		}
 		parent[keys[keys.length - 1]] = value;
 		return value;
-	};
-
-/**
- * @param {object} object
- * @param {object} otherObject
- * @returns {boolean}
- */
-JsonObjects.shallowEquals =
-	function shallowEquals(object, otherObject) {
-		tc.expectNonPrimitive(object);
-		tc.expectNonPrimitive(otherObject);
-		if(object === otherObject) return true;
-		if(typeof object !== "object" || typeof otherObject !== "object") {
-			return false;
-		}
-		if(object === null || otherObject === null) {
-			return false;
-		}
-		if(Array.isArray(object)) {
-			if(!Array.isArray(otherObject)) return false;
-			return Arrays.shallowEquals(object, otherObject);
-		}
-		for(const key in object) if(hasOwnProperty(object, key)) {
-			if(object[key] !== otherObject[key]) {
-				return false;
-			}
-		}
-		for(const key in otherObject) if(hasOwnProperty(otherObject, key)) {
-			if(otherObject[key] !== object[key]) {
-				return false;
-			}
-		}
-		return true;
 	};
 
 /**
