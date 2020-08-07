@@ -1,5 +1,5 @@
 /* eslint-env node */
-const {uncamelize} = require("../../dist/core").Strings;
+const {uncamelize} = require("../../cjs/Strings");
 
 const testCases = {
 	"99Bottles": "99 bottles",

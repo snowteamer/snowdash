@@ -1,5 +1,5 @@
 /* eslint-env node */
-const {equals} = require("../../dist/core").JsonObjects;
+const {equals} = require("../../cjs/JsonObjects");
 
 const testCases = [
 	[],
