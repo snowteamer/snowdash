@@ -11,24 +11,11 @@
  * @template T
  * @typedef {Record<PropertyKey, T>} BareObject
  */
+type MapCallback<K, V> = (value: V, key: K, map: Map<K, V>) => void;
+type MapPredicate<K, V> = (value: V, key: K, map: Map<K, V>) => boolean; 
 
-/**
- * @template K, V
- * @typedef {function(V, K?, Map<K, V>?): void} MapCallback
- */
-
-/**
- * @template K, V
- * @typedef {function(V, K?, Map<K, V>?): boolean} MapPredicate
- */
 
 import * as tc from "tc";
-
-const Maps = {};
-
-if(typeof Symbol === "function" && typeof Symbol.toStringTag === "symbol") {
-	Maps[Symbol.toStringTag] = "core.Maps";
-}
 
 
 const call = Function.prototype.call.bind(Function.prototype.call);
@@ -37,7 +24,7 @@ const call = Function.prototype.call.bind(Function.prototype.call);
  * @param {Iterable<*>} [iterable]
  * @returns {Map<*, *>}
  */
-Maps.createMap = (() => {
+export const createMap = (() => {
 	/**
 	 * @this {object} this
 	 * @param {number} depth
@@ -47,6 +34,7 @@ Maps.createMap = (() => {
 	const customInspect = function custom(depth, options) {
 		void depth;
 		return options.stylize(
+			// @ts-ignore
 			`[Map <${this.size}>]`,
 			"special",
 		);
@@ -64,10 +52,10 @@ Maps.createMap = (() => {
  * @param {Record<PropertyKey, V>} object
  * @returns {Map<string, V>}
  */
-Maps.fromPlainObject = function fromPlainObject(object) {
+export function fromPlainObject(object) {
 	tc.expectNonPrimitive(object);
 	return new Map(Object.entries(object));
-};
+}
 
 /**
  * @template K, V
@@ -76,14 +64,14 @@ Maps.fromPlainObject = function fromPlainObject(object) {
  * @param {*=} thisArg
  * @returns {boolean}
  */
-Maps.every = function every(map, predicate, thisArg = undefined) {
+export function every<K, V>(map, predicate: MapPredicate<K, V>, thisArg?) {
 	tc.expectMap(map);
 	tc.expectFunction(predicate);
 	for(const [key, value] of map) {
 		if(!call(predicate, thisArg, value, key, map)) return false;
 	}
 	return true;
-};
+}
 
 /**
  * @template K, V
@@ -92,7 +80,7 @@ Maps.every = function every(map, predicate, thisArg = undefined) {
  * @param {*=} thisArg
  * @returns {Map<K, V>}
  */
-Maps.filter = function filter(map, predicate, thisArg = undefined) {
+export function filter<K, V>(map, predicate: MapPredicate<K, V>, thisArg?) {
 	tc.expectMap(map);
 	tc.expectFunction(predicate);
 	const rv = new Map();
@@ -102,7 +90,7 @@ Maps.filter = function filter(map, predicate, thisArg = undefined) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
  * @template K, V
@@ -110,11 +98,11 @@ Maps.filter = function filter(map, predicate, thisArg = undefined) {
  * @param {MapCallback<K, V>} fn
  * @param {*=} thisArg
  */
-Maps.forEach = function forEach(map, fn, thisArg = undefined) {
+export function forEach<K, V>(map: Map<K, V>, fn: MapCallback<K, V>, thisArg?) {
 	tc.expectMap(map);
 	tc.expectFunction(fn);
 	Map.prototype.forEach.call(map, fn, thisArg);
-};
+}
 
 /**
  * @template K, V
@@ -124,7 +112,7 @@ Maps.forEach = function forEach(map, fn, thisArg = undefined) {
  * @returns {Map<K, V>}
  */
 // eslint-disable-next-line no-shadow
-Maps.map = function map(map, mapfn, thisArg = undefined) {
+export function map<K, V>(map: Map<K, V>, mapfn, thisArg?) {
 	tc.expectMap(map);
 	tc.expectFunction(mapfn);
 	return new Map(Array.from(
@@ -132,7 +120,7 @@ Maps.map = function map(map, mapfn, thisArg = undefined) {
 		([key, value]) => [key, call(mapfn, thisArg, value, key, map)],
 		thisArg,
 	));
-};
+}
 
 /**
  * @template K, V
@@ -141,7 +129,7 @@ Maps.map = function map(map, mapfn, thisArg = undefined) {
  * @param {*=} initialValue
  * @returns {*}
  */
-Maps.reduce = function reduce(map, fn, initialValue = undefined) {
+export function reduce(map, fn, initialValue?) {
 	tc.expectMap(map);
 	tc.expectFunction(fn);
 	if("2" in arguments) return [...map].reduce(
@@ -151,7 +139,7 @@ Maps.reduce = function reduce(map, fn, initialValue = undefined) {
 	return [...map].reduce(
 		(acc, [key, value]) => call(fn, undefined, acc, value, key, map),
 	);
-};
+}
 
 /**
  * @template K, V
@@ -160,44 +148,44 @@ Maps.reduce = function reduce(map, fn, initialValue = undefined) {
  * @param {*=} thisArg
  * @returns {boolean}
  */
-Maps.some = function some(map, predicate, thisArg = undefined) {
+export function some(map, predicate, thisArg?) {
 	tc.expectMap(map);
 	tc.expectFunction(predicate);
 	for(const [key, value] of map) {
 		if(call(predicate, thisArg, value, key, map)) return true;
 	}
 	return false;
-};
+}
 
 /**
  * @template K, V
  * @param {Map<K, V>} map
  */
-Maps.clear = function clear(map) {
+export function clear(map) {
 	tc.expectMap(map);
 	Map.prototype.clear.call(map);
-};
+}
 
 /**
  * @template K, V
  * @param {Map<K, V>} map
  * @returns {Map<K, V>}
  */
-Maps.copy = function copy(map) {
+export function copy(map) {
 	tc.expectMap(map);
 	return new Map(map);
-};
+}
 
 /**
  * @template K, V
  * @param {Map<K, V>} map
  * @param {[*]} keys
  */
-Maps.deleteAll = function deleteAll(map, keys) {
+export function deleteAll(map, keys) {
 	tc.expectMap(map);
 	tc.expectArrayLike(keys);
 	for(let i = 0; i < keys.length; i++) map.delete(keys[i]);
-};
+}
 
 /**
  * @template K, V
@@ -205,7 +193,7 @@ Maps.deleteAll = function deleteAll(map, keys) {
  * @param {Map<K, V>} otherMap
  * @returns {boolean}
  */
-Maps.equals = function equals(map, otherMap) {
+export function equals(map, otherMap) {
 	tc.expectMap(map);
 	tc.expectMap(otherMap);
 	if(map.size !== otherMap.size) return false;
@@ -214,7 +202,7 @@ Maps.equals = function equals(map, otherMap) {
 		if(!Object.is(value, otherMap.get(key))) return false;
 	}
 	return true;
-};
+}
 
 /**
  * @template K, V
@@ -222,7 +210,7 @@ Maps.equals = function equals(map, otherMap) {
  * @param {...Map<K, V>} otherMaps
  * @returns {Map<K, V>}
  */
-Maps.extend = function extend(map, ...otherMaps) {
+export function extend(map, ...otherMaps) {
 	tc.expectMap(map);
 	tc.expectMaps(otherMaps);
 	for(const otherMap of otherMaps) {
@@ -231,41 +219,58 @@ Maps.extend = function extend(map, ...otherMaps) {
 		}
 	}
 	return map;
-};
+}
 
 /**
  * @template K, V
  * @param {Map<K, V>} map
- * @param {...*} keys
+ * @param {*} keys
  * @returns {boolean}
  */
-Maps.has = function has(map, ...keys) {
+export function hasKeys(map, keys) {
 	tc.expectMap(map);
 	tc.expectNonEmptyArrayLike(keys);
 	for(const key of keys) {
 		if(!map.has(key)) return false;
 	}
 	return true;
-};
+}
 
 /**
  * @template K, V
  * @param {Map<K, V>} map
- * @param {[*, *]} entry
+ * @param {[*, *]} entries
  * @returns {boolean}
  */
-Maps.hasEntry = function hasEntry(map, entry) {
+export function hasEntry(map, entry): boolean {
 	tc.expectMap(map);
-	tc.expectArray(entry);
-	if(entry.length !== 2) {
-		throw new TypeError("a map entry must be an array whose length is 2.");
-	}
+	tc.expectNonEmptyArrayLike(entry);
 	const [key, value] = entry;
 	if(value === undefined) {
 		if(!map.has(key)) return false;
 	}
-	return Object.is(map.get(key), value);
-};
+	if(!Object.is(map.get(key), value)) return false;
+	return true;
+}
+
+/**
+ * @template K, V
+ * @param {Map<K, V>} map
+ * @param {[*, *]} entries
+ * @returns {boolean}
+ */
+export function hasEntries(map, entries) {
+	tc.expectMap(map);
+	tc.expectNonEmptyArrayLike(entries);
+	for(let i = 0; i < entries.length; i++) {
+		const [key, value] = entries[i];
+		if(value === undefined) {
+			if(!map.has(key)) return false;
+		}
+		if(!Object.is(map.get(key), value)) return false;
+	}
+	return true;
+}
 
 /**
  * @template K, V
@@ -273,7 +278,7 @@ Maps.hasEntry = function hasEntry(map, entry) {
  * @param {...Map<K, V>} otherMaps
  * @returns {Map<K, V>}
  */
-Maps.intersection = function intersection(map, ...otherMaps) {
+export function intersection(map, ...otherMaps) {
 	tc.expectMap(map);
 	tc.expectMaps(otherMaps);
 	const rv = new Map(map);
@@ -283,26 +288,26 @@ Maps.intersection = function intersection(map, ...otherMaps) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
  * @template K, V
  * @param {Map<K, V>} map
  * @returns {Map<V, K>}
  */
-Maps.inverse = function inverse(map) {
+export function inverse(map) {
 	tc.expectMap(map);
 	const rv = new Map();
 	for(const key of map.keys()) rv.set(map.get(key), key);
 	return rv;
-};
+}
 
 /**
  * @template K, V
  * @param {Map<K, V>} map
  * @returns {Map<V, Set<K>>}
  */
-Maps.inverseWithSet = function inverseWithSet(map) {
+export function inverseWithSet(map) {
 	tc.expectMap(map);
 	const rv = new Map();
 	for(const key of map.keys()) {
@@ -312,17 +317,17 @@ Maps.inverseWithSet = function inverseWithSet(map) {
 		inverseValue.add(key);
 	}
 	return rv;
-};
+}
 
 /**
  * @template K, V
  * @param {Map<K, V>} map
  * @returns {boolean}
  */
-Maps.isEmpty = function isEmpty(map) {
+export function isEmpty(map) {
 	tc.expectMap(map);
 	return map.size === 0;
-};
+}
 
 /**
  * @template K, V
@@ -330,7 +335,7 @@ Maps.isEmpty = function isEmpty(map) {
  * @param {Map<K, V>} otherMap
  * @returns {boolean}
  */
-Maps.isSubmapOf = function isSubmapOf(map, otherMap) {
+export function isSubmapOf(map, otherMap) {
 	tc.expectMap(map);
 	tc.expectMap(otherMap);
 	if(map.size > otherMap.size) return false;
@@ -338,7 +343,7 @@ Maps.isSubmapOf = function isSubmapOf(map, otherMap) {
 		if(!otherMap.has(key)) return false;
 	}
 	return true;
-};
+}
 
 /**
  * @template K, V
@@ -346,11 +351,11 @@ Maps.isSubmapOf = function isSubmapOf(map, otherMap) {
  * @param {Map<K, V>} otherMap
  * @returns {boolean}
  */
-Maps.isSupermapOf = function isSupermapOf(map, otherMap) {
+export function isSupermapOf(map, otherMap) {
 	tc.expectMap(map);
 	tc.expectMap(otherMap);
 	return Maps.isSubmapOf(otherMap, map);
-};
+}
 
 /**
  * @template K, V
@@ -358,7 +363,7 @@ Maps.isSupermapOf = function isSupermapOf(map, otherMap) {
  * @param {...Map<K, V>} otherMaps
  * @returns {Map<K, V>}
  */
-Maps.merge = function merge(map, ...otherMaps) {
+export function merge(map, ...otherMaps) {
 	tc.expectMap(map);
 	tc.expectMaps(otherMaps);
 	const rv = new Map(map);
@@ -368,7 +373,7 @@ Maps.merge = function merge(map, ...otherMaps) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
  * @template K, V
@@ -376,7 +381,7 @@ Maps.merge = function merge(map, ...otherMaps) {
  * @param {...Map<K, V>} maps
  * @returns {Map<K, V>}
  */
-Maps.mergeWith = function mergeWith(fn, ...maps) {
+export function mergeWith(fn, ...maps) {
 	tc.expectFunction(fn);
 	tc.expectMaps(maps);
 	const rv = new Map();
@@ -390,18 +395,20 @@ Maps.mergeWith = function mergeWith(fn, ...maps) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
  * @template K, V
  * @param {Map<K, V>} map
  * @param {[*, *][]} entries
  */
-Maps.setAll = function setAll(map, entries) {
+export function setAll(map, entries) {
 	tc.expectMap(map);
 	tc.expectArrays(entries);
-	for(let i = 0; i < entries.length; i++) map.set(entry[0], entry[1]);
-};
+	for(let i = 0; i < entries.length; i++) {
+		map.set(entries[i][0], entries[i][1]);
+	}
+}
 
 /**
  * @template K, V
@@ -409,7 +416,7 @@ Maps.setAll = function setAll(map, entries) {
  * @param {function(*, *): *} [comparator]
  * @returns {Map<K, V>}
  */
-Maps.sortByKeys = function sortByKeys(map, comparator = undefined) {
+export function sortByKeys(map, comparator = undefined) {
 	tc.expectMap(map);
 	if(comparator) tc.expectFunction(comparator);
 	const rv = new Map();
@@ -418,7 +425,7 @@ Maps.sortByKeys = function sortByKeys(map, comparator = undefined) {
 		rv.set(key, map.get(key));
 	}
 	return rv;
-};
+}
 
 /**
  * @template K, V
@@ -426,14 +433,14 @@ Maps.sortByKeys = function sortByKeys(map, comparator = undefined) {
  * @param {Iterable<*>} keysToKeep
  * @returns {Map<K, V>}
  */
-Maps.submap = function submap(map, keysToKeep) {
+export function submap(map, keysToKeep) {
 	tc.expectMap(map);
 	const rv = new Map();
 	for(const key of keysToKeep) {
 		if(map.has(key)) rv.set(key, map.get(key));
 	}
 	return rv;
-};
+}
 
 /**
  * @template K, V
@@ -441,7 +448,7 @@ Maps.submap = function submap(map, keysToKeep) {
  * @param {K} key
  * @param {K} otherKey
  */
-Maps.swap = function swap(map, key, otherKey) {
+export function swap(map, key, otherKey) {
 	tc.expectMap(map);
 	const value = map.get(key);
 	const otherValue = map.get(otherKey);
@@ -455,14 +462,14 @@ Maps.swap = function swap(map, key, otherKey) {
 	map.set(key, otherValue);
 	// @ts-ignore
 	map.set(otherKey, value);
-};
+}
 
 /**
  * @template V
  * @param {Map<PropertyKey, V>} map
  * @returns {BareObject<V>}
  */
-Maps.toBareObject = function toBareObject(map) {
+export function toBareObject(map) {
 	tc.expectMap(map);
 	const rv = Object.create(null);
 	for(const key of map.keys()) {
@@ -470,14 +477,14 @@ Maps.toBareObject = function toBareObject(map) {
 		rv[key] = map.get(key);
 	}
 	return rv;
-};
+}
 
 /**
  * @template V
  * @param {Map<PropertyKey, V>} map
  * @returns {object}
  */
-Maps.toPlainObject = function toPlainObject(map) {
+export function toPlainObject(map) {
 	tc.expectMap(map);
 	const rv = {};
 	for(const key of map.keys()) {
@@ -485,7 +492,7 @@ Maps.toPlainObject = function toPlainObject(map) {
 		rv[key] = map.get(key);
 	}
 	return rv;
-};
+}
 
 /**
  * @template K, V
@@ -493,7 +500,7 @@ Maps.toPlainObject = function toPlainObject(map) {
  * @param {...Map<K, V>} otherMaps
  * @returns {Map<K, V>}
  */
-Maps.unextend = function unextend(map, ...otherMaps) {
+export function unextend(map, ...otherMaps) {
 	tc.expectMap(map);
 	tc.expectMaps(otherMaps);
 	for(const otherMap of otherMaps) {
@@ -502,6 +509,40 @@ Maps.unextend = function unextend(map, ...otherMaps) {
 		}
 	}
 	return map;
+}
+
+const Maps = {
+	every,
+	filter,
+	forEach,
+	map,
+	reduce,
+	some,
+	
+	clear,
+	copy,
+	createMap,
+	deleteAll,
+	equals,
+	extend,
+	fromPlainObject,
+	hasEntries,
+	hasEntry,
+	intersection,
+	inverse,
+	inverseWithSet,
+	isEmpty,
+	isSubmapOf,
+	isSupermapOf,
+	merge,
+	mergeWith,
+	setAll,
+	sortByKeys,
+	swap,
+	toBareObject,
+	toPlainObject,
+	unextend,
+	[Symbol.toStringTag]: "snowdash.Maps"
 };
 
 export default Maps;

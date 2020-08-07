@@ -1,26 +1,44 @@
 /**
- * @file Sets.js - Utilities for Set objects.
+ * @file Sets.ts - Utilities for Set objects.
  *
  */
-
-/**
- * @typedef {number} int
+/* 
+type int = number;
+type uint = number;
  */
-/**
- * @typedef {number} uint
- */
-
 import * as tc from "tc";
 import Arrays from "./Arrays";
 
 /**
- * @module core/Sets
+ * @module snowdash/Sets
  */
-const Sets = {};
-
-if(typeof Symbol === "function" && typeof Symbol.toStringTag === "symbol") {
-	Sets[Symbol.toStringTag] = "core.Sets";
-}
+const Sets = {
+	[Symbol.toStringTag]: "snowdash.Sets",
+	addAll,
+	areDisjoint,
+	deleteAll,
+	difference,
+	equals,
+	extend,
+	from,
+	fromKeysOf,
+	fromValuesOf,
+	hasAll,
+	intersection,
+	isEmpty,
+	isSubsetOf,
+	isSupersetOf,
+	maxBy,
+	maxPropertyValue,
+	maxWith,
+	minBy,
+	minPropertyValue,
+	minWith,
+	sortByKeys,
+	symmetricDifference,
+	unextend,
+	union,
+};
 
 
 const call = Function.prototype.call.bind(Function.prototype.call);
@@ -34,7 +52,7 @@ const call = Function.prototype.call.bind(Function.prototype.call);
  * @param {function(T, uint?): U} [mapfn]
  * @returns {(Set<T> | Set<U>)}
  */
-Sets.from = function from(arrayLikeOrIterable, mapfn) {
+export function from(arrayLikeOrIterable, mapfn) {
 	if(
 		!tc.isArray(arrayLikeOrIterable)
 		&& !tc.isIterable(arrayLikeOrIterable)
@@ -46,13 +64,13 @@ Sets.from = function from(arrayLikeOrIterable, mapfn) {
 		return new Set(Array.from(arrayLikeOrIterable, mapfn));
 	}
 	return new Set(Array.from(arrayLikeOrIterable));
-};
+}
 
 /**
  * @param {object} object
  * @returns {Set<*>}
  */
-Sets.fromKeysOf = function fromKeysOf(object) {
+export function fromKeysOf(object) {
 	tc.expectNonPrimitive(object);
 	if(typeof object.keys === "function") {
 		const keys = object.keys();
@@ -61,13 +79,13 @@ Sets.fromKeysOf = function fromKeysOf(object) {
 		}
 	}
 	return new Set(Object.keys(object));
-};
+}
 
 /**
  * @param {object} object
  * @returns {Set<*>}
  */
-Sets.fromValuesOf = function fromValuesOf(object) {
+export function fromValuesOf(object) {
 	tc.expectNonPrimitive(object);
 	if(typeof object.values === "function") {
 		const values = object.values();
@@ -76,7 +94,7 @@ Sets.fromValuesOf = function fromValuesOf(object) {
 		}
 	}
 	return new Set(Object.values(object));
-};
+}
 
 /**
  * @template T
@@ -85,7 +103,7 @@ Sets.fromValuesOf = function fromValuesOf(object) {
  * @param {*} [thisArg]
  * @returns {boolean}
  */
-Sets.every = function every(set, fn, thisArg = undefined) {
+export function every(set, fn, thisArg = undefined) {
 	tc.expectSet(set);
 	tc.expectFunction(fn);
 	for(const element of set) {
@@ -94,7 +112,7 @@ Sets.every = function every(set, fn, thisArg = undefined) {
 		}
 	}
 	return true;
-};
+}
 
 /**
  * @template T
@@ -103,14 +121,14 @@ Sets.every = function every(set, fn, thisArg = undefined) {
  * @param {*} [thisArg]
  * @returns {Set<*>}
  */
-Sets.filter = function filter(set, fn, thisArg = undefined) {
+export function filter(set, fn, thisArg = undefined) {
 	tc.expectSet(set);
 	tc.expectFunction(fn);
 	return new Set([...set].filter(
 		(element) => call(fn, thisArg, element, element, set),
 		thisArg,
 	));
-};
+}
 
 /**
  * @template T
@@ -118,13 +136,13 @@ Sets.filter = function filter(set, fn, thisArg = undefined) {
  * @param {function(T, T, Set<T>): *} fn
  * @param {*} [thisArg]
  */
-Sets.forEach = function forEach(set, fn, thisArg = undefined) {
+export function forEach(set, fn, thisArg = undefined) {
 	tc.expectSet(set);
 	tc.expectFunction(fn);
 	for(const element of set) {
 		call(fn, thisArg, element, element, set);
 	}
-};
+}
 
 /**
  * @template T, U
@@ -132,11 +150,11 @@ Sets.forEach = function forEach(set, fn, thisArg = undefined) {
  * @param {function(T, uint): U} mapfn
  * @returns {Set<U>}
  */
-Sets.map = function map(set, mapfn) {
+export function map(set, mapfn) {
 	tc.expectSet(set);
 	tc.expectFunction(mapfn);
 	return new Set(Array.from(set, mapfn));
-};
+}
 
 /**
  * @template T
@@ -145,7 +163,7 @@ Sets.map = function map(set, mapfn) {
  * @param {*} [initialValue]
  * @returns {*}
  */
-Sets.reduce = function reduce(set, fn, initialValue = undefined) {
+export function reduce(set, fn, initialValue = undefined) {
 	tc.expectSet(set);
 	tc.expectFunction(fn);
 	if("2" in arguments && initialValue !== undefined) return [...set].reduce(
@@ -153,7 +171,7 @@ Sets.reduce = function reduce(set, fn, initialValue = undefined) {
 		initialValue,
 	);
 	return [...set].reduce((acc, element) => fn(acc, element, element, set));
-};
+}
 
 /**
  * @template T
@@ -162,14 +180,14 @@ Sets.reduce = function reduce(set, fn, initialValue = undefined) {
  * @param {*} [thisArg]
  * @returns {boolean}
  */
-Sets.some = function some(set, fn, thisArg = undefined) {
+export function some(set, fn, thisArg = undefined) {
 	tc.expectSet(set);
 	tc.expectFunction(fn);
 	return [...set].some(
 		(value) => call(fn, thisArg, value, value, set),
 		thisArg,
 	);
-};
+}
 
 // ====== Other functions ====== //
 
@@ -178,10 +196,10 @@ Sets.some = function some(set, fn, thisArg = undefined) {
  * @param {Set<T>} set
  * @param {T[]} args
  */
-Sets.addAll = function addAll(set, args) {
+export function addAll(set, args) {
 	tc.expectSet(set);
 	for(let i = 0; i < args.length; i++) set.add(args[i]);
-};
+}
 
 /**
  * @template T
@@ -189,22 +207,22 @@ Sets.addAll = function addAll(set, args) {
  * @param {...Set<T>} otherSets
  * @returns {boolean}
  */
-Sets.areDisjoint = function areDisjoint(set, ...otherSets) {
+export function areDisjoint(set, ...otherSets) {
 	tc.expectSet(set);
 	tc.expectSets(otherSets);
 	return Sets.intersection(set, ...otherSets).size === 0;
-};
+}
 
 /**
  * @template T
  * @param {Set<T>} set
  * @param {T[]} args
  */
-Sets.deleteAll = function deleteAll(set, args) {
+export function deleteAll(set, args) {
 	tc.expectSet(set);
 	tc.expectArrayLike(args);
 	for(let i = 0; i < args.length; i++) set.delete(args[i]);
-};
+}
 
 /**
  * @template T
@@ -212,14 +230,14 @@ Sets.deleteAll = function deleteAll(set, args) {
  * @param {T[]} args
  * @returns {boolean}
  */
-Sets.hasAll = function hasAll(set, args) {
+export function hasAll(set, args) {
 	tc.expectSet(set);
 	tc.expectArrayLike(args);
 	for(let i = 0; i < args.length; i++) {
 		if(!set.has(args[i])) return false;
 	}
 	return true;
-};
+}
 
 /**
  * @template T
@@ -227,7 +245,7 @@ Sets.hasAll = function hasAll(set, args) {
  * @param {Set<T>} otherSet
  * @returns {Set<T>}
  */
-Sets.difference = function difference(set, otherSet) {
+export function difference(set, otherSet) {
 	tc.expectSet(set);
 	tc.expectSet(otherSet);
 	const rv = new Set();
@@ -235,7 +253,7 @@ Sets.difference = function difference(set, otherSet) {
 		if(!otherSet.has(key)) rv.add(key);
 	}
 	return rv;
-};
+}
 
 /**
  * @template T
@@ -243,12 +261,12 @@ Sets.difference = function difference(set, otherSet) {
  * @param {Set<T>} otherSet
  * @returns {boolean}
  */
-Sets.equals = function equals(set, otherSet) {
+export function equals(set, otherSet) {
 	tc.expectSet(set);
 	tc.expectSet(otherSet);
 	if(set.size !== otherSet.size) return false;
 	return Sets.intersection(set, otherSet).size === set.size;
-};
+}
 
 /**
  * @template T
@@ -256,7 +274,7 @@ Sets.equals = function equals(set, otherSet) {
  * @param {...Set<T>} otherSets
  * @returns {Set<T>}
  */
-Sets.extend = function extend(set, ...otherSets) {
+export function extend(set, ...otherSets) {
 	tc.expectSet(set);
 	tc.expectSets(otherSets);
 	for(const otherSet of otherSets) {
@@ -265,7 +283,7 @@ Sets.extend = function extend(set, ...otherSets) {
 		}
 	}
 	return set;
-};
+}
 
 /**
  * @template T
@@ -273,7 +291,7 @@ Sets.extend = function extend(set, ...otherSets) {
  * @param {...Set<T>} otherSets
  * @returns {Set<T>}
  */
-Sets.intersection = function intersection(set, ...otherSets) {
+export function intersection(set, ...otherSets) {
 	tc.expectSet(set);
 	tc.expectSets(otherSets);
 	const rv = new Set(set);
@@ -283,16 +301,16 @@ Sets.intersection = function intersection(set, ...otherSets) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
  * @param {Set<*>} set
  * @returns {boolean}
  */
-Sets.isEmpty = function isEmpty(set) {
+export function isEmpty(set) {
 	tc.expectSet(set);
 	return set.size === 0;
-};
+}
 
 /**
  * @template T
@@ -300,7 +318,7 @@ Sets.isEmpty = function isEmpty(set) {
  * @param {Set<T>} otherSet
  * @returns {boolean}
  */
-Sets.isSubsetOf = function isSubsetOf(set, otherSet) {
+export function isSubsetOf(set, otherSet) {
 	tc.expectSet(set);
 	tc.expectSet(otherSet);
 	if(set.size > otherSet.size) return false;
@@ -308,7 +326,7 @@ Sets.isSubsetOf = function isSubsetOf(set, otherSet) {
 		if(!otherSet.has(key)) return false;
 	}
 	return true;
-};
+}
 
 /**
  * @template T
@@ -316,11 +334,11 @@ Sets.isSubsetOf = function isSubsetOf(set, otherSet) {
  * @param {Set<T>} otherSet
  * @returns {boolean}
  */
-Sets.isSupersetOf = function isSupersetOf(set, otherSet) {
+export function isSupersetOf(set, otherSet) {
 	tc.expectSet(set);
 	tc.expectSet(otherSet);
 	return Sets.isSubsetOf(otherSet, set);
-};
+}
 
 /**
  * @template T
@@ -328,13 +346,12 @@ Sets.isSupersetOf = function isSupersetOf(set, otherSet) {
  * @param {PropertyKey} propertyKey
  * @returns {T=}
  */
-Sets.maxBy = function maxBy(set, propertyKey) {
+export function maxBy<T, K extends keyof T>(set: Set<T>, propertyKey: K): T | undefined {
 	tc.expectSet(set);
 	tc.expectNonEmptyString(propertyKey);
-	let maxPropertyValue;
-	let rv;
+	let maxPropertyValue: number | undefined;
+	let rv: T | undefined = undefined;
 	for(const key of set) {
-		// @ts-ignore
 		const propertyValue = key[propertyKey];
 		if(typeof propertyValue !== "number") continue;
 		if(Number.isNaN(propertyValue)) continue;
@@ -347,18 +364,18 @@ Sets.maxBy = function maxBy(set, propertyKey) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
  * @param {Set<object>} set
  * @param {PropertyKey} propertyKey
  * @returns {number}
  */
-Sets.maxPropertyValue = function maxPropertyValue(set, propertyKey) {
+export function maxPropertyValue<T>(set: Set<T>, propertyKey) {
 	tc.expectSet(set);
 	tc.expectPropertyKey(propertyKey);
-	return Arrays.max(Array.from(set, (element) => element[propertyKey]));
-};
+	return Arrays.max(Array.from(set, (element: T) => element[propertyKey]));
+}
 
 /**
  * @template T
@@ -366,7 +383,7 @@ Sets.maxPropertyValue = function maxPropertyValue(set, propertyKey) {
  * @param {function(T): number} fn
  * @returns {T=}
  */
-Sets.maxWith = function maxWith(set, fn) {
+export function maxWith(set, fn) {
 	tc.expectSet(set);
 	tc.expectFunction(fn);
 	let maxAssociatedValue;
@@ -384,7 +401,7 @@ Sets.maxWith = function maxWith(set, fn) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
  * @template T
@@ -392,7 +409,7 @@ Sets.maxWith = function maxWith(set, fn) {
  * @param {PropertyKey} propertyKey
  * @returns {T=}
  */
-Sets.minBy = function minBy(set, propertyKey) {
+export function minBy(set, propertyKey) {
 	tc.expectSet(set);
 	tc.expectPropertyKey(propertyKey);
 	let minPropertyValue;
@@ -411,18 +428,18 @@ Sets.minBy = function minBy(set, propertyKey) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
  * @param {Set<object>} set
  * @param {PropertyKey} propertyKey
  * @returns {number}
  */
-Sets.minPropertyValue = function minPropertyValue(set, propertyKey) {
+export function minPropertyValue<T>(set: Set<T>, propertyKey): number | undefined {
 	tc.expectSet(set);
 	tc.expectPropertyKey(propertyKey);
-	return Arrays.min(Array.from(set, (element) => element[propertyKey]));
-};
+	return Arrays.min(Array.from(set, (element: T) => element[propertyKey]));
+}
 
 /**
  * @template T
@@ -430,7 +447,7 @@ Sets.minPropertyValue = function minPropertyValue(set, propertyKey) {
  * @param {function(T): number} fn
  * @returns {T=}
  */
-Sets.minWith = function minWith(set, fn) {
+export function minWith(set, fn) {
 	tc.expectSet(set);
 	tc.expectFunction(fn);
 	let minAssociatedValue;
@@ -448,7 +465,7 @@ Sets.minWith = function minWith(set, fn) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
  * @template T
@@ -456,7 +473,7 @@ Sets.minWith = function minWith(set, fn) {
  * @param {function(*, *): number} [comparator]
  * @returns {Set<T>}
  */
-Sets.sortByKeys = function sortByKeys(set, comparator = undefined) {
+export function sortByKeys(set, comparator = undefined) {
 	tc.expectSet(set);
 	if(comparator) tc.expectFunction(comparator);
 	const rv = new Set();
@@ -465,7 +482,7 @@ Sets.sortByKeys = function sortByKeys(set, comparator = undefined) {
 		rv.add(key);
 	}
 	return rv;
-};
+}
 
 /**
  * @template T
@@ -473,7 +490,7 @@ Sets.sortByKeys = function sortByKeys(set, comparator = undefined) {
  * @param {Set<T>} otherSet
  * @returns {Set<T>}
  */
-Sets.symmetricDifference = function symmetricDifference(set, otherSet) {
+export function symmetricDifference(set, otherSet) {
 	tc.expectSet(set);
 	tc.expectSet(otherSet);
 	const rv = new Set();
@@ -484,7 +501,7 @@ Sets.symmetricDifference = function symmetricDifference(set, otherSet) {
 		if(!set.has(otherKey)) rv.add(otherKey);
 	}
 	return rv;
-};
+}
 
 /**
  * @template T
@@ -492,7 +509,7 @@ Sets.symmetricDifference = function symmetricDifference(set, otherSet) {
  * @param {...Set<T>} otherSets
  * @returns {Set<T>} The given set.
  */
-Sets.unextend = function unextend(set, ...otherSets) {
+export function unextend(set, ...otherSets) {
 	tc.expectSet(set);
 	tc.expectSets(otherSets);
 	for(const otherSet of otherSets) {
@@ -501,14 +518,14 @@ Sets.unextend = function unextend(set, ...otherSets) {
 		}
 	}
 	return set;
-};
+}
 
 /**
  * @template T
  * @param {...Set<T>} sets
  * @returns {Set<T>}
  */
-Sets.union = function union(...sets) {
+export function union(...sets) {
 	tc.expectSets(sets);
 	const rv = new Set();
 	for(const set of sets) {
@@ -517,6 +534,6 @@ Sets.union = function union(...sets) {
 		}
 	}
 	return rv;
-};
+}
 
 export default Sets;

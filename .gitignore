@@ -1,3 +1,11 @@
+# Batch files
+*.bat
+*.cmd
+
+# Dist
+cjs
+esm
+
 # Logs
 logs
 *.log

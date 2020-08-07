@@ -7,15 +7,28 @@
  */
 
 import * as tc from "tc";
-import Functions from "./Functions";
 import Iterators from "./Iterators";
 
-const Iterables = {};
+const Iterables = {
+	bigrams,
+	chunk,
+	filter,
+	fromFunction,
+	group,
+	groupWith,
+	map,
+	ngrams,
+	objectEntries,
+	objectKeys,
+	objectValues,
+	take,
+	takeWhile,
+	zip,
+	zipWith,
+	[Symbol.toStringTag]: "snowdash.Iterables"
+};
 
-if(typeof Symbol === "function" && typeof Symbol.toStringTag === "symbol") {
-	Iterables[Symbol.toStringTag] = "core.Iterables";
-}
-
+const call = Function.prototype.call.bind(Function.prototype.call);
 
 
 /**
@@ -26,7 +39,7 @@ if(typeof Symbol === "function" && typeof Symbol.toStringTag === "symbol") {
  * @yields {T}
  * @see Haskell 'iterate'
  */
-Iterables.fromFunction = function* fromFunction(fn, initialValue) {
+export function* fromFunction(fn, initialValue) {
 	tc.expectFunction(fn);
 	let currentValue = initialValue;
 	yield currentValue;
@@ -34,7 +47,7 @@ Iterables.fromFunction = function* fromFunction(fn, initialValue) {
 		currentValue = fn(currentValue);
 		yield currentValue;
 	}
-};
+}
 
 /**
  * @template T
@@ -42,7 +55,7 @@ Iterables.fromFunction = function* fromFunction(fn, initialValue) {
  * @param {Iterable<T>} iterable
  * @yields {T[]}
  */
-Iterables.bigrams = function* bigrams(iterable) {
+export function* bigrams(iterable) {
 	tc.expectIterable(iterable);
 	const iterator = Iterators.fromIterable(iterable);
 	const sentinel = {};
@@ -53,7 +66,7 @@ Iterables.bigrams = function* bigrams(iterable) {
 		a = b;
 		b = Iterators.next(iterator, sentinel);
 	}
-};
+}
 
 /**
  * @template T
@@ -62,10 +75,10 @@ Iterables.bigrams = function* bigrams(iterable) {
  * @param {uint} [n=1]
  * @yields {T[]}
  */
-Iterables.chunk = function* chunk(iterable, n = 1) {
+export function* chunk<T>(iterable: Iterable<T>, n = 1) {
 	tc.expectIterable(iterable);
 	tc.expectPositiveInteger(n);
-	let chunk = [];
+	let chunk = [] as T[];
 	let i = 0;
 
 	for(const x of iterable) {
@@ -78,7 +91,7 @@ Iterables.chunk = function* chunk(iterable, n = 1) {
 		}
 		i++;
 	}
-};
+}
 
 /**
  * @template T
@@ -88,13 +101,13 @@ Iterables.chunk = function* chunk(iterable, n = 1) {
  * @param {*=} thisArg
  * @yields {T}
  */
-Iterables.filter = function* filter(iterable, predicate, thisArg = undefined) {
+export function* filter(iterable, predicate, thisArg = undefined) {
 	tc.expectFunction(predicate);
 	tc.expectIterable(iterable);
 	for(const x of iterable) {
-		if(Functions.call(predicate, thisArg, x)) yield x;
+		if(call(predicate, thisArg, x)) yield x;
 	}
-};
+}
 
 /**
  * @template T
@@ -102,10 +115,10 @@ Iterables.filter = function* filter(iterable, predicate, thisArg = undefined) {
  * @param {Iterable<T>} iterable
  * @yields {T[]}
  */
-Iterables.group = function* group(iterable) {
+export function* group(iterable) {
 	tc.expectIterable(iterable);
 	yield* Iterables.groupWith(iterable, (x) => x);
-};
+}
 
 /**
  * @template T
@@ -114,11 +127,11 @@ Iterables.group = function* group(iterable) {
  * @param {function(T, uint): *} mapfn
  * @yields {T[]}
  */
-Iterables.groupWith = function* groupWith(iterable, mapfn) {
+export function* groupWith<T>(iterable: Iterable<T>, mapfn) {
 	tc.expectIterable(iterable);
 	tc.expectFunction(mapfn);
 	let i = 0;
-	let currentChunk = [];
+	let currentChunk = [] as T[];
 	let currentValue;
 	const length = tc.isArrayLike(iterable) ? iterable.length : Infinity;
 	for(const element of iterable) {
@@ -136,7 +149,7 @@ Iterables.groupWith = function* groupWith(iterable, mapfn) {
 		if(i++ === length) break;
 	}
 	yield currentChunk;
-};
+}
 
 /**
  * @template T, U
@@ -146,13 +159,13 @@ Iterables.groupWith = function* groupWith(iterable, mapfn) {
  * @param {*=} thisArg
  * @yields {U}
  */
-Iterables.map = function* map(iterable, fn, thisArg = undefined) {
+export function* map(iterable, fn, thisArg = undefined) {
 	tc.expectIterable(iterable);
 	tc.expectFunction(fn);
 	for(const x of iterable) {
-		yield Functions.call(fn, thisArg, x);
+		yield call(fn, thisArg, x);
 	}
-};
+}
 
 /**
  * No shorter ngram will be returned if the iterable is exhausted before
@@ -164,7 +177,7 @@ Iterables.map = function* map(iterable, fn, thisArg = undefined) {
  * @param {uint} n
  * @yields {T[]}
  */
-Iterables.ngrams = function* ngrams(iterable, n = 1) {
+export function* ngrams(iterable, n = 1) {
 	tc.expectIterable(iterable);
 	tc.expectPositiveInteger(n);
 	let ngram = new Array(n);
@@ -179,31 +192,31 @@ Iterables.ngrams = function* ngrams(iterable, n = 1) {
 		}
 		i++;
 	}
-};
+}
 
-Iterables.objectEntries = function* objectEntries(object) {
+export function* objectEntries(object) {
 	for(const key in object) {
 		if(Object.hasOwnProperty.prototype.call(object, key)) {
 			yield [key, object[key]];
 		}
 	}
-};
+}
 
-Iterables.objectKeys = function* objectKeys(object) {
+export function* objectKeys(object) {
 	for(const key in object) {
 		if(Object.hasOwnProperty.prototype.call(object, key)) {
 			yield key;
 		}
 	}
-};
+}
 
-Iterables.objectValues = function* objectValues(object) {
+export function* objectValues(object) {
 	for(const key in object) {
 		if(Object.hasOwnProperty.prototype.call(object, key)) {
 			yield object[key];
 		}
 	}
-};
+}
 
 /**
  * @template T
@@ -212,15 +225,15 @@ Iterables.objectValues = function* objectValues(object) {
  * @returns {T[]}
  * @note In Haskell, if 'n' is negative, 'take n xs' yields the empty sequence.
  */
-Iterables.take = function take(iterable, n) {
+export function take<T>(iterable: Iterable<T>, n) {
 	tc.expectIterable(iterable);
 	tc.expectPositiveInteger(n);
 	const iterator = Iterators.fromIterable(iterable);
-	const rv = [];
+	const rv = [] as T[];
 	let i = n;
 	while(--i >= 0) rv[rv.length] = iterator.next().value;
 	return rv;
-};
+}
 
 /**
  * @template T
@@ -228,11 +241,11 @@ Iterables.take = function take(iterable, n) {
  * @param {Function} predicate
  * @returns {T[]}
  */
-Iterables.takeWhile = function takeWhile(iterable, predicate) {
+export function takeWhile<T>(iterable: Iterable<T>, predicate) {
 	tc.expectIterable(iterable);
 	tc.expectFunction(predicate);
 	const iterator = Iterators.fromIterable(iterable);
-	const rv = [];
+	const rv = [] as T[];
 	while(true) {
 		const next = iterator.next();
 		if(next.done) break;
@@ -241,7 +254,7 @@ Iterables.takeWhile = function takeWhile(iterable, predicate) {
 		rv[rv.length] = nextValue;
 	}
 	return rv;
-};
+}
 
 /*
  * In Haskell,
@@ -271,11 +284,11 @@ Iterables.takeWhile = function takeWhile(iterable, predicate) {
  * @param {...Iterable<T>} iterables
  * @yields {T[]}
  */
-Iterables.zip = function* zip(...iterables) {
+export function* zip<T>(...iterables: Iterable<T>[]) {
 	tc.expectIterables(iterables);
 	const iterators = iterables.map(Iterators.fromIterable);
 	while(true) {
-		const rv = [];
+		const rv = [] as T[];
 		for(const iterator of iterators) {
 			const {done, value} = iterator.next();
 			if(done) return;
@@ -283,7 +296,7 @@ Iterables.zip = function* zip(...iterables) {
 		}
 		yield rv;
 	}
-};
+}
 
 /**
  * @template T, U
@@ -292,20 +305,19 @@ Iterables.zip = function* zip(...iterables) {
  * @param {...Iterable<T>} iterables
  * @yields {U}
  */
-Iterables.zipWith = function* zipWith(fn, ...iterables) {
+export function* zipWith<T, U>(fn: (...args: T[]) => U, ...iterables: Iterable<T>[]) {
 	tc.expectFunction(fn);
 	tc.expectIterables(iterables);
 	const iterators = iterables.map(Iterators.fromIterable);
 	while(true) {
-		const values = [];
+		const values = [] as T[];
 		for(const iterator of iterators) {
 			const {done, value} = iterator.next();
 			if(done) return;
 			values[values.length] = value;
 		}
-		// @ts-ignore
 		yield fn(...values);
 	}
-};
+}
 
 export default Iterables;

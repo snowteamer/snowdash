@@ -1,27 +1,25 @@
 /**
- * @file Numbers.js - Utilities to work with numbers.
+ * @file Numbers.ts - Utilities to work with numbers.
  *
- * @namespace Numbers
  */
 
-/**
- * An unsigned integer number.
- *
- * @typedef {number} uint
- */
+type int = number;
+type uint = number;
 
-/**
- * An integer number.
- *
- * @typedef {number} int
- */
 
 import * as tc from "tc";
 
-const Numbers = {};
-
-if(typeof Symbol === "function" && typeof Symbol.toStringTag === "symbol") {
-	Numbers[Symbol.toStringTag] = "core.Numbers";
+const Numbers = {
+	fromBase,
+	binaryLength,
+	octalLength,
+	decimalLength,
+	hexadecimalLength,
+	isNumber,
+	isRegularNumber,
+	isSpecialNumber,
+	pad,
+	[Symbol.toStringTag]: "snowdash.Numbers",
 }
 
 
@@ -31,89 +29,89 @@ if(typeof Symbol === "function" && typeof Symbol.toStringTag === "symbol") {
  * @param {uint} base
  * @returns {uint}
  */
-Numbers.fromBase = function fromBase(numericString, base) {
+export function fromBase(numericString: string, base: uint): int {
 	tc.expectNonEmptyString(numericString);
 	tc.expectPositiveInteger(base);
 	return Number.parseInt(numericString, base);
-};
+}
 
 /**
  * @memberof Numbers
  * @param {number} number
  * @returns {uint}
  */
-Numbers.binaryLength = function binaryLength(number) {
+export function binaryLength(number: number): uint {
 	tc.expectRegularNumber(number);
 	const base = 2;
 	return number.toString(base).length;
-};
+}
 
 /**
  * @memberof Numbers
  * @param {number} number
  * @returns {uint}
  */
-Numbers.decimalLength = function decimalLength(number) {
+export function decimalLength(number: number): uint {
 	tc.expectRegularNumber(number);
 	const base = 10;
 	return number.toString(base).length;
-};
+}
 
 /**
  * @memberof Numbers
  * @param {number} number
  * @returns {uint}
  */
-Numbers.hexadecimalLength = function hexadecimalLength(number) {
+export function hexadecimalLength(number: number): uint {
 	tc.expectRegularNumber(number);
 	const base = 16;
 	return number.toString(base).length;
-};
+}
 
 /**
  * @memberof Numbers
  * @param {number} number
  * @returns {uint}
  */
-Numbers.octalLength = function octalLength(number) {
+export function octalLength(number: number): uint {
 	tc.expectRegularNumber(number);
 	const base = 8;
 	return number.toString(base).length;
-};
+}
 
 /**
  * @memberof Numbers
  * @param {*} arg
  * @returns {boolean}
  */
-Numbers.isNumber = function isNumber(arg) {
+export function isNumber(arg: any): boolean {
 	return typeof arg === "number";
-};
+}
 
 /**
  * @memberof Numbers
  * @param {*} arg
  * @returns {boolean}
  */
-Numbers.isRegularNumber = function isRegularNumber(arg) {
+export function isRegularNumber(arg: any): boolean {
 	if(typeof arg !== "number") return false;
 	if(arg !== arg) return false; // eslint-disable-line no-self-compare
 	return arg < Number.POSITIVE_INFINITY && arg > Number.NEGATIVE_INFINITY;
-};
+}
 
 /**
  * @memberof Numbers
  * @param {*} arg
  * @returns {boolean}
  */
-Numbers.isSpecialNumber = function isSpecialNumber(arg) {
+export function isSpecialNumber(arg: any): boolean {
 	if(typeof arg !== "number") return false;
 	if(arg !== arg) return true; // eslint-disable-line no-self-compare
 	return (
 		arg === Number.POSITIVE_INFINITY
 		|| arg === Number.NEGATIVE_INFINITY
 	);
-};
+}
 
 /**
  * Pads a number with "0" characters so that the resulting string has
@@ -124,12 +122,12 @@ Numbers.isSpecialNumber = function isSpecialNumber(arg) {
  * @param {uint} numberOfCharacters
  * @returns {string}
  */
-Numbers.pad = function pad(number, numberOfCharacters) {
+export function pad(number: number, numberOfCharacters: uint): string {
 	tc.expectRegularNumber(number);
 	tc.expectPositiveInteger(numberOfCharacters);
 	const s = String(number);
 	if(s.length >= numberOfCharacters) return s;
 	return "0".repeat(numberOfCharacters - s.length) + s;
-};
+}
 
 export default Numbers;

@@ -3,13 +3,13 @@ const path = require("path");
 
 module.exports = {
 
-	entry: "./esm/core.js",
+	entry: "./esm/snowdash.js",
 	output: {
-		filename: "core.js",
+		filename: "snowdash.js",
 		globalObject: "this",
 		path: path.join(__dirname, "dist"),
 
-		library: "core",
+		library: "snowdash",
 		libraryTarget: "umd",
 	},
 	mode: "development",

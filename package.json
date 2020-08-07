@@ -4,7 +4,7 @@
 		"url": "https://github.com/snowteamer"
 	},
 	"bugs": {
-		"url": "https://github.com/snowteamer/core/issues"
+		"url": "https://github.com/snowteamer/snowdash/issues"
 	},
 	"description": "Static utilities for EcmaScript values",
 	"devDependencies": {
@@ -17,14 +17,16 @@
 		"node": ">=14"
 	},
 	"license": "AGPL-3.0",
-	"main": "dist/core.js",
-	"module": "esm/core.js",
-	"name": "@snowtech/core",
+	"main": "cjs/snowdash.js",
+	"module": "esm/snowdash.js",
+	"name": "snowdash",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/snowteamer/core.git"
+		"url": "git+https://github.com/snowteamer/snowdash.git"
 	},
 	"scripts": {
-		"lint": "eslint --report-unused-disable-directives ./"
-	}
+		"lint": "eslint --report-unused-disable-directives ./",
+		"test": "node test/index.js"
+	},
+	"typings": "esm/snowdash.d.ts"
 }

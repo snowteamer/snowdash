@@ -1,18 +1,44 @@
 /**
- * @file Strings.js - Utilities to work with strings.
+ * @file Strings.ts - Utilities to work with strings.
  */
 
-/**
- * @typedef {number} uint
- */
+type uint = number;
+
 
 import * as tc from "tc";
 import RegExps from "./RegExps";
 
-const Strings = {};
-
-if(typeof Symbol === "function" && typeof Symbol.toStringTag === "symbol") {
-	Strings[Symbol.toStringTag] = "core.Strings";
+const Strings = {
+	countOccurencesOf,
+	countRegExpMatches,
+	ellipsis,
+	equalsIgnoreCase,
+	escape,
+	isAlpha,
+	isAlphanumeric,
+	isDigit,
+	isLetter,
+	isLowerCase,
+	isNumericString,
+	isUpperCase,
+	isWhiteSpace,
+	padAfter,
+	padBefore,
+	repeat,
+	reverse,
+	splitCharacters,
+	splitLines,
+	startsWithRegExp,
+	swapCase,
+	toBase64,
+	toCamelCase,
+	toLowerCase,
+	toProperCase,
+	toSnakeCase,
+	toSpinalCase,
+	toUpperCase,
+	uncamelize,
+	[Symbol.toStringTag]: "snowdash.Strings",
 }
 
 
@@ -26,9 +52,9 @@ const escapeSequencesByCharacter = {
 	"'": "\\'",
 	"\"": "\\\"",
 	"\\": "\\\\",
-};
+} as {[key: string]: string};
 
-Strings.ALPHABET = "abcdefghijklmnopqrstuvwxyz";
+export const ALPHABET = "abcdefghijklmnopqrstuvwxyz";
 
 /**
  * @param {string} text
@@ -37,10 +63,10 @@ Strings.ALPHABET = "abcdefghijklmnopqrstuvwxyz";
  * @param {string} [options.tab="\t"]
  * @returns {string}
  */
-Strings.collapseWhiteSpace = function collapseWhiteSpace(
-	text,
+export function collapseWhiteSpace(
+	text: string,
 	options = {newline: "\n", tab: "\t"},
-) {
+): string {
 	tc.expectString(text);
 	tc.expectString(options.newline);
 	tc.expectString(options.tab);
@@ -54,52 +80,52 @@ Strings.collapseWhiteSpace = function collapseWhiteSpace(
 			: " "
 		),
 	);
-};
+}
 
 /**
  * @param {string} s1
  * @param {string | RegExp} s2
  * @returns {uint}
  */
-Strings.countOccurencesOf = function countOccurencesOf(s1, s2) {
+export function countOccurencesOf(s1: string, s2: string): uint {
 	tc.expectString(s1);
 	tc.expectNonEmptyString(s2);
 	return (s1.match(new RegExp(s2, "g")) || "").length;
-};
+}
 
 /**
  * @param {string} s
  * @param {RegExp} re
  * @returns {uint}
  */
-Strings.countRegExpMatches = function countRegExpMatches(s, re) {
+export function countRegExpMatches(s: string, re: RegExp): uint {
 	tc.expectString(s);
 	tc.expectRegExp(re);
 	const globalRegExp = (re.global ? re : new RegExp(re.source, "g"));
 	return (s.match(globalRegExp) || "").length;
-};
+}
 
 /**
  * @param {string} s
  * @param {uint} n
  * @returns {string}
  */
-Strings.ellipsis = function ellipsis(s, n) {
+export function ellipsis(s: string, n: uint) {
 	tc.expectString(s);
 	tc.expectPositiveInteger(n);
 	return n && s.length > n ? `${s.slice(0, n - (1 + "...".length))}...` : s;
-};
+}
 
 /**
  * @param {string} s1
  * @param {string} s2
  * @returns {boolean}
  */
-Strings.equalsIgnoreCase = function equalsIgnoreCase(s1, s2) {
+export function equalsIgnoreCase(s1: string, s2: string): boolean {
 	tc.expectString(s1);
 	tc.expectString(s2);
 	return s1.toLowerCase() === s2.toLowerCase();
-};
+}
 
 /**
  * Escapes control characters, using default escape sequences.
@@ -107,14 +133,14 @@ Strings.equalsIgnoreCase = function equalsIgnoreCase(s1, s2) {
  * @param {string} s
  * @returns {string}
  */
-Strings.escape = function escape(s) {
+export function escape(s: string): string {
 	tc.expectString(s);
 	return s.replace(
 		// eslint-disable-next-line no-control-regex
 		/[\u0000-\u001F"'\\]/g,
 		(x) => escapeSequencesByCharacter[x],
 	);
-};
+}
 
 const tableTo64 = (
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
@@ -123,14 +149,16 @@ const tableTo64 = (
 const tableFrom64 = (
 	tableTo64
 	.split("")
-	.reduce((acc, character, index) => ((acc[character] = index), acc), {})
+	.reduce(
+		(acc, character, index) => ((acc[character] = index), acc), {} as {[key: string]: number}
+	)
 );
 
 /**
  * @param {string} s
  * @returns {string}
  */
-Strings.fromBase64 = function fromBase64(s) {
+export function fromBase64(s: string): string {
 	tc.expectString(s);
 	const binaryString = (
 		s.split("")
@@ -149,18 +177,18 @@ Strings.fromBase64 = function fromBase64(s) {
 		))
 		.join("")
 	);
-};
+}
 
 /**
  * @param {string} s
  * @param {RegExp} re
  * @returns {uint}
  */
-Strings.indexOfRegExp = function indexOfRegExp(s, re) {
+export function indexOfRegExp(s: string, re: RegExp): uint {
 	tc.expectString(s);
 	tc.expectRegExp(re);
 	return s.search(re);
-};
+}
 
 /**
  * @param {string} s
@@ -168,85 +196,85 @@ Strings.indexOfRegExp = function indexOfRegExp(s, re) {
  * @param {uint} i
  * @returns {string}
  */
-Strings.insertAt = function insertAt(s, t, i) {
+export function insertAt(s: string, t: string, i: uint): string {
 	tc.expectString(s);
 	tc.expectString(t);
 	tc.expectPositiveInteger(i);
 	if(i) return s.slice(0, i) + t + s.slice(i);
 	return t + s;
-};
+}
 
 /**
  * @param {string} s
  * @returns {boolean}
  */
-Strings.isAlpha = function isAlpha(s) {
+export function isAlpha(s: string): boolean {
 	tc.expectString(s);
 	return !/[^A-Za-z]/.test(s);
-};
+}
 
 /**
  * @param {string} s
  * @returns {boolean}
  */
-Strings.isAlphanumeric = function isAlphanumeric(s) {
+export function isAlphanumeric(s: string): boolean {
 	tc.expectString(s);
 	return !/[^\dA-Za-z]/.test(s);
-};
+}
 
 /**
  * @param {string} s
  * @returns {boolean}
  */
-Strings.isDigit = function isDigit(s) {
+export function isDigit(s: string): boolean {
 	tc.expectString(s);
 	return RegExps.digit.test(s);
-};
+}
 
 /**
  * @param {string} s
  * @returns {boolean}
  */
-Strings.isLetter = function isLetter(s) {
+export function isLetter(s: string): boolean {
 	tc.expectString(s);
 	return s.length === 1 && RegExps.alpha.test(s);
-};
+}
 
 /**
  * @param {string} s
  * @returns {boolean}
  */
-Strings.isLowerCase = function isLowerCase(s) {
+export function isLowerCase(s: string): boolean {
 	tc.expectString(s);
 	return s === s.toLowerCase();
-};
+}
 
 /**
  * @param {string} s
  * @returns {boolean}
  */
-Strings.isNumericString = function isNumericString(s) {
+export function isNumericString(s: string): boolean {
 	tc.expectString(s);
 	return typeof s === "string" && !Number.isNaN(Number.parseFloat(s));
-};
+}
 
 /**
  * @param {string} s
  * @returns {boolean}
  */
-Strings.isUpperCase = function isUpperCase(s) {
+export function isUpperCase(s: string): boolean {
 	tc.expectString(s);
 	return s === s.toUpperCase();
-};
+}
 
 /**
  * @param {string} s
  * @returns {boolean}
  */
-Strings.isWhiteSpace = function isWhiteSpace(s) {
+export function isWhiteSpace(s: string): boolean {
 	tc.expectString(s);
 	return /^\s+$/.test(s);
-};
+}
 
 /**
  * @param {string} s
@@ -254,10 +282,10 @@ Strings.isWhiteSpace = function isWhiteSpace(s) {
  * @param {string} paddingString
  * @returns {string}
  */
-Strings.padAfter = function padAfter(s, n, paddingString) {
+export function padAfter(s: string, n: uint, paddingString: string): string {
 	tc.expectString(s);
 	return s.padEnd(n, paddingString);
-};
+}
 
 /**
  * @param {string} s
@@ -265,75 +293,66 @@ Strings.padAfter = function padAfter(s, n, paddingString) {
  * @param {string} paddingString
  * @returns {string}
  */
-Strings.padBefore = function padBefore(s, n, paddingString) {
+export function padBefore(s: string, n: uint, paddingString: string): string {
 	tc.expectString(s);
 	return s.padStart(n, paddingString);
-};
+}
 
 /**
  * @param {string} s
  * @param {uint} n
  * @returns {string}
  */
-Strings.repeat = function repeat(s, n) {
+export function repeat(s: string, n: uint): string {
 	tc.expectString(s);
 	return s.repeat(n);
-};
+}
 
 /**
  * @param {string} s
  * @returns {string}
  */
-Strings.reverse = function reverse(s) {
+export function reverse(s: string): string {
 	tc.expectString(s);
 	return s.split("").reverse().join("");
-};
+}
 
 /**
  * @param {string} s
  * @returns {string[]}
  */
-Strings.splitCharacters = function splitCharacters(s) {
+export function splitCharacters(s: string): string[] {
 	tc.expectString(s);
 	return s.split("");
-};
+}
 
 /**
  * @param {string} s
  * @returns {string[]}
  */
-Strings.splitLines = function splitLines(s) {
+export function splitLines(s: string): string[] {
 	tc.expectString(s);
 	return s.split(/\r\n?|\n/g);
-};
-
-/**
- * @param {string} s
- * @returns {string[]}
- */
-Strings.splitNonEmptyLines = function splitLines(s) {
-	tc.expectString(s);
-	return s.split(/[\n\r]+/g);
-};
+}
 
 /**
  * @param {string} s
  * @param {RegExp} re
  * @returns {boolean}
  */
-Strings.startsWithRegExp = function startsWithRegExp(s, re) {
+export function startsWithRegExp(s: string,re: RegExp): boolean {
 	tc.expectString(s);
 	tc.expectRegExp(re);
 	return s.search(re) === 0;
-};
+}
 
 /**
  * @param {string} s
  * @returns {string}
  */
-Strings.swapCase = function swapCase(s) {
+export function swapCase(s: string): string {
 	tc.expectString(s);
-	const chars = [];
+	const chars = [] as string[];
 	for(const c of s) {
 		chars[chars.length] = (
 			c === c.toLowerCase()
@@ -342,13 +361,13 @@ Strings.swapCase = function swapCase(s) {
 		);
 	}
 	return chars.join("");
-};
+}
 
 /**
  * @param {string} s
  * @returns {string}
  */
-Strings.toBase64 = function toBase64(s) {
+export function toBase64(s: string): string {
 	tc.expectString(s);
 	if(!s.length) return "";
 	const binaryString = (
@@ -365,13 +384,13 @@ Strings.toBase64 = function toBase64(s) {
 		.join("")
 		+ padding
 	);
-};
+}
 
 /**
  * @param {string} s
  * @returns {string}
  */
-Strings.toCamelCase = function toCamelCase(s) {
+export function toCamelCase(s: string): string {
 	tc.expectString(s);
 	const parts = s.split(/\W+/);
 	if(parts.length === 1 && parts[0] === "") return "";
@@ -379,76 +398,76 @@ Strings.toCamelCase = function toCamelCase(s) {
 		parts[i] = parts[i][0].toUpperCase() + parts[i].slice(1);
 	}
 	return parts.join("");
-};
+}
 
 /**
  * @param {string} s
  * @returns {string}
  */
-Strings.toLowerCase = function toLowerCase(s) {
+export function toLowerCase(s: string): string {
 	tc.expectString(s);
 	return s.toLowerCase();
-};
+}
 
 /**
  * @param {string} s
  * @returns {string}
  */
-Strings.toProperCase = function toProperCase(s) {
+export function toProperCase(s: string): string {
 	tc.expectString(s);
 	return s[0].toUpperCase() + s.slice(1);
-};
+}
 
 /**
  * @param {string} s
  * @returns {string}
  */
-Strings.toSnakeCase = function toSnakeCase(s) {
+export function toSnakeCase(s: string): string {
 	tc.expectString(s);
 	return (
 		s.split(/[\s_-]|(?=[A-Z])/g)
 		.join("_")
 		.toLowerCase()
 	);
-};
+}
 
 /**
  * @param {string} s
  * @returns {string}
  */
-Strings.toSpinalCase = function toSpinalCase(s) {
+export function toSpinalCase(s: string): string {
 	tc.expectString(s);
 	return (
 		s.split(/[\s_-]|(?=[A-Z])/g)
 		.join("-")
 		.toLowerCase()
 	);
-};
+}
 
 /**
  * @param {string} s
  * @returns {string}
  */
-Strings.toTitleCase = function toTitleCase(s) {
+export function toTitleCase(s: string): string {
 	tc.expectString(s);
 	return s.replace(/\b[A-Za-z]/g, (match) => Strings.toProperCase(match));
-};
+}
 
 /**
  * @param {string} s
  * @returns {string}
  */
-Strings.toUpperCase = function toUpperCase(s) {
+export function toUpperCase(s: string): string {
 	tc.expectString(s);
 	return s.toUpperCase();
-};
+}
 
 /**
  * @param {string} s
  * @returns {string}
  * @see http://stackoverflow.com/questions/7225407/convert-camelcasetext-to-camel-case-text
  */
-Strings.uncamelize = function uncamelize(s) {
+export function uncamelize(s: string): string {
 	tc.expectString(s);
 	const reCamelEdges = (
 		/([A-Z](?=[A-Z][a-zé])|[^A-Z](?=[A-Z])|[A-Za-zé](?=[^A-Za-zé]))/g
@@ -467,6 +486,6 @@ Strings.uncamelize = function uncamelize(s) {
 		})
 		.join(" ")
 	);
-};
+}
 
 export default Strings;

@@ -21,11 +21,27 @@
 
 import * as tc from "tc";
 
-const Objects = {};
-
-if(typeof Symbol === "function" && typeof Symbol.toStringTag === "symbol") {
-	Objects[Symbol.toStringTag] = "core.Objects";
-}
+const Objects = {
+	assign,
+	assignNoNew,
+	clone,
+	copy,
+	copyAssign,
+	createNullObject,
+	getOwnPropertyDescriptorsByName,
+	getPropertyValueChain,
+	getPropertyDescriptor,
+	getSpecies,
+	getTag,
+	hasAccessorProperty,
+	hasConfigurableProperty,
+	hasEnumerableProperty,
+	hasDataProperty,
+	hasOwnAccessorProperty,
+	hasOwnDataProperty,
+	iterPropertyValueChain,
+	[Symbol.toStringTag]: "snowdash.Objects"
+};
 
 /* eslint-disable no-new-object, no-new-wrappers, unicorn/new-for-builtins */
 
@@ -78,10 +94,28 @@ const factoriesByTag = {
  * @param {...NonPrimitive} otherObjects
  * @returns {NonPrimitive} The given object.
  */
-Objects.assign = function assign(object, ...otherObjects) {
+export function assign(object, ...otherObjects) {
 	tc.expectNonPrimitive(object);
 	tc.expectNonPrimitives(otherObjects);
 	return Object.assign(object, ...otherObjects);
+};
+
+/**
+ * Same as 'Objects.assign()' but updates only existing properties.
+ *
+ * @param {NonPrimitive} object
+ * @param {...NonPrimitive} otherObjects
+ * @returns {NonPrimitive} The given object.
+ */
+export function assignNoNew(object, ...otherObjects) {
+	tc.expectNonPrimitive(object);
+	tc.expectNonPrimitives(otherObjects);
+	for(const otherObject of otherObjects) {
+		for(const key of Object.keys(otherObject)) {
+			if(key in object) object[key] = otherObject[key];
+		}
+	}
+	return object;
 };
 
 /**
@@ -89,7 +123,7 @@ Objects.assign = function assign(object, ...otherObjects) {
  *
  * @param {NonPrimitive} object
  */
-Objects.clear = function clear(object) {
+export function clear(object) {
 	tc.expectNonPrimitive(object);
 	for(const key of Object.keys(object)) {
 		delete object[key];
@@ -129,7 +163,7 @@ Objects.clear = function clear(object) {
  * @param {boolean} [options.ignoreSymbols]
  * @returns {NonPrimitive}
  */
-Objects.clone = function clone(
+export function clone(
 	object,
 	options = {
 		"allowAccessors": false,
@@ -154,7 +188,7 @@ Objects.clone = function clone(
 	tc.expectBoolean(ignoreExtensibility);
 	tc.expectBoolean(ignoreSymbols);
 	const clonesByVisitedObject = new WeakMap();
-	const path = [];
+	const path = [] as PropertyKey[];
 	const setOfVisitedPrototypes = new WeakSet();
 	/**
 	 * @param {object} node
@@ -238,90 +272,87 @@ Objects.clone = function clone(
  * @param {boolean} [options.ignoreSymbols]
  * @returns {NonPrimitive}
  */
-Objects.copy =
-	function copy(
-		object,
-		options = {
-			"ignoreAttributes": false,
-			"ignoreExtensibility": false,
-			"ignoreSymbols": false,
-		},
-	) {
-		tc.expectNonPrimitive(object);
-		const {ignoreAttributes, ignoreExtensibility, ignoreSymbols} = options;
-		tc.expectBoolean(ignoreAttributes);
-		tc.expectBoolean(ignoreExtensibility);
-		tc.expectBoolean(ignoreSymbols);
-		const proto = Object.getPrototypeOf(object);
-		const propertyKeys = (
-			ignoreSymbols
-			? Object.getOwnPropertyNames(object)
-			: Reflect.ownKeys(object)
+export function copy(
+	object,
+	options = {
+		"ignoreAttributes": false,
+		"ignoreExtensibility": false,
+		"ignoreSymbols": false,
+	},
+) {
+	tc.expectNonPrimitive(object);
+	const {ignoreAttributes, ignoreExtensibility, ignoreSymbols} = options;
+	tc.expectBoolean(ignoreAttributes);
+	tc.expectBoolean(ignoreExtensibility);
+	tc.expectBoolean(ignoreSymbols);
+	const proto = Object.getPrototypeOf(object);
+	const propertyKeys = (
+		ignoreSymbols
+		? Object.getOwnPropertyNames(object)
+		: Reflect.ownKeys(object)
+	);
+	/** @type {Record<PropertyKey, PropertyDescriptor>} */
+	const descriptorsByKey = {};
+	for(const key of propertyKeys) {
+		const descriptor = (
+			Object.getOwnPropertyDescriptor(object, key)
 		);
-		/** @type {Record<PropertyKey, PropertyDescriptor>} */
-		const descriptorsByKey = {};
-		for(const key of propertyKeys) {
-			const descriptor = (
-				Object.getOwnPropertyDescriptor(object, key)
-			);
-			if(typeof descriptor === "undefined") continue;
-			// @ts-ignore
-			descriptorsByKey[key] = descriptor;
-			if(ignoreAttributes && "value" in descriptor) {
-				descriptor.configurable = true;
-				descriptor.enumerable = true;
-				descriptor.writable = true;
-			}
+		if(typeof descriptor === "undefined") continue;
+		// @ts-ignore
+		descriptorsByKey[key] = descriptor;
+		if(ignoreAttributes && "value" in descriptor) {
+			descriptor.configurable = true;
+			descriptor.enumerable = true;
+			descriptor.writable = true;
 		}
-		const tag = Objects.getTag(object);
-		const factory = factoriesByTag[tag];
-		const rv = (factory ? factory(object) : Object.create(proto));
-		if(Object.getPrototypeOf(rv) !== proto) {
-			Reflect.setPrototypeOf(rv, proto);
-		}
-		Object.defineProperties(rv, descriptorsByKey);
-		if(!ignoreExtensibility) {
-			if(!Reflect.isExtensible(object)) Reflect.preventExtensions(rv);
-		}
-		return rv;
-	};
+	}
+	const tag = Objects.getTag(object);
+	const factory = factoriesByTag[tag];
+	const rv = (factory ? factory(object) : Object.create(proto));
+	if(Object.getPrototypeOf(rv) !== proto) {
+		Reflect.setPrototypeOf(rv, proto);
+	}
+	Object.defineProperties(rv, descriptorsByKey);
+	if(!ignoreExtensibility) {
+		if(!Reflect.isExtensible(object)) Reflect.preventExtensions(rv);
+	}
+	return rv;
+}
 
 /**
  * @param {NonPrimitive} object
  * @param {...!*} args
  * @returns {object}
  */
-Objects.copyAssign =
-	function copyAssign(object, ...args) {
-		tc.expectNonPrimitive(object);
-		tc.expectNonNullables(args);
-		return Object.assign(Objects.copy(object), ...args);
-	};
+export function copyAssign(object, ...args) {
+	tc.expectNonPrimitive(object);
+	tc.expectNonNullables(args);
+	return Object.assign(Objects.copy(object), ...args);
+};
+
+/**
+ * @this {object} this
+ * @param {number} depth
+ * @param {{stylize: function(string, string): *}} options
+ * @returns {string}
+ */
+const customInspect = function custom(this: any, depth, options): string {
+	void depth;
+	return options.stylize(
+		`[Object <${Object.keys((<any>this)).length}>]`,
+		"special",
+	);
+};
 
 /**
  * @returns {object}
  */
-Objects.createNullObject = (() => {
-	/**
-	 * @this {object} this
-	 * @param {number} depth
-	 * @param {{stylize: function(string, string): *}} options
-	 * @returns {string}
-	 */
-	const customInspect = function custom(depth, options) {
-		void depth;
-		return options.stylize(
-			`[Object <${Object.keys(this).length}>]`,
-			"special",
-		);
-	};
-	return function createNullObject() {
-		const rv = Object.create(null);
-		const customSymbol = Symbol.for("nodejs.util.inspect.custom");
-		rv[customSymbol] = customInspect;
-		return rv;
-	};
-})();
+export function createNullObject() {
+	const rv = Object.create(null);
+	const customSymbol = Symbol.for("nodejs.util.inspect.custom");
+	rv[customSymbol] = customInspect;
+	return rv;
+};
 
 /**
  * Compares two values for deep equality.
@@ -337,33 +368,32 @@ Objects.createNullObject = (() => {
  * @param {*} value2
  * @returns {boolean}
  */
-Objects.deepEquals =
-	function deepEquals(value1, value2) {
-		if(Object.is(value1, value2)) return true;
-		if(typeof value1 !== "object" || typeof value2 !== "object") {
-			return false;
-		}
-		if(Object.getPrototypeOf(value1) !== Object.getPrototypeOf(value2)) {
-			return false;
-		}
-		if(Array.isArray(value1)) {
-			if(!Array.isArray(value2)) return false;
-			if(value1.length !== value2.length) return false;
-			for(let i = 0; i < value1.length; i++) {
-				if(!deepEquals(value1[i], value2[i])) return false;
-			}
-			return true;
-		}
-		for(const key1 in value1) {
-			if(value1[key1] === value2[key1]) continue;
-			if(!deepEquals(value1[key1], value2[key1])) return false;
-		}
-		for(const key2 in value2) {
-			if(value1[key2] === value2[key2]) continue;
-			if(!deepEquals(value1[key2], value2[key2])) return false;
+export function deepEquals(value1, value2) {
+	if(Object.is(value1, value2)) return true;
+	if(typeof value1 !== "object" || typeof value2 !== "object") {
+		return false;
+	}
+	if(Object.getPrototypeOf(value1) !== Object.getPrototypeOf(value2)) {
+		return false;
+	}
+	if(Array.isArray(value1)) {
+		if(!Array.isArray(value2)) return false;
+		if(value1.length !== value2.length) return false;
+		for(let i = 0; i < value1.length; i++) {
+			if(!deepEquals(value1[i], value2[i])) return false;
 		}
 		return true;
-	};
+	}
+	for(const key1 in value1) {
+		if(value1[key1] === value2[key1]) continue;
+		if(!deepEquals(value1[key1], value2[key1])) return false;
+	}
+	for(const key2 in value2) {
+		if(value1[key2] === value2[key2]) continue;
+		if(!deepEquals(value1[key2], value2[key2])) return false;
+	}
+	return true;
+};
 
 /**
  * @param {NonPrimitive} object
@@ -371,63 +401,60 @@ Objects.deepEquals =
  * @param {string} options.alias
  * @param {string} options.original
  */
-Objects.defineAliasProperty =
-	function defineAliasProperty(object, options = {alias: "", original: ""}) {
-		tc.expectNonPrimitive(object);
-		tc.expectNonEmptyString(options.alias);
-		tc.expectNonEmptyString(options.original);
-		const {alias, original} = options;
-		if(alias === original) {
-			throw new Error("Expected distinct options 'alias' and 'original'.");
-		}
-		const enumerable = Objects.hasEnumerableProperty(object, original);
-		Object.defineProperty(object, alias, {
-			"get"() {
-				return this[original];
-			},
-			"set"(arg) {
-				this[original] = arg;
-			},
-			enumerable,
-			"configurable": true,
-		});
-	};
+export function defineAliasProperty(object, options = {alias: "", original: ""}) {
+	tc.expectNonPrimitive(object);
+	tc.expectNonEmptyString(options.alias);
+	tc.expectNonEmptyString(options.original);
+	const {alias, original} = options;
+	if(alias === original) {
+		throw new Error("Expected distinct options 'alias' and 'original'.");
+	}
+	const enumerable = Objects.hasEnumerableProperty(object, original);
+	Object.defineProperty(object, alias, {
+		"get"() {
+			return this[original];
+		},
+		"set"(arg) {
+			this[original] = arg;
+		},
+		enumerable,
+		"configurable": true,
+	});
+};
 
 /**
  * @param {NonPrimitive} object
  * @param {PropertyKey} key
  * @param {Function} predicate
  */
-Objects.defineCheckedProperty =
-	function defineCheckedProperty(object, key, predicate) {
-		tc.expectNonPrimitive(object);
-		tc.expectPropertyKey(key);
-		tc.expectFunction(predicate);
-		let propertyValue = object[key];
-		Object.defineProperty(object, key, {
-			"get"() {
-				return propertyValue;
-			},
-			"set"(arg) {
-				if(!predicate(arg)) {
-					throw Object.assign(
-						new TypeError("Bad property value."),
-						{key, arg, predicate},
-					);
-				}
-				propertyValue = arg;
-			},
-			"enumerable": true,
-			"configurable": true,
-		});
-	};
+export function defineCheckedProperty(object, key, predicate) {
+	tc.expectNonPrimitive(object);
+	tc.expectPropertyKey(key);
+	tc.expectFunction(predicate);
+	let propertyValue = object[key];
+	Object.defineProperty(object, key, {
+		"get"() {
+			return propertyValue;
+		},
+		"set"(arg) {
+			if(!predicate(arg)) {
+				throw Object.assign(
+					new TypeError("Bad property value."),
+					{key, arg, predicate},
+				);
+			}
+			propertyValue = arg;
+		},
+		"enumerable": true,
+		"configurable": true,
+	});
+}
 
 /**
  * @param {NonPrimitive} object
  * @returns {Array<string>}
  */
-Objects.getAllPropertyNames =
-	function getAllPropertyNames(object) {
+export function getAllPropertyNames(object) {
 		tc.expectNonPrimitive(object);
 		const propertyNameSet = new Set(Object.getOwnPropertyNames(object));
 		let node = object;
@@ -446,18 +473,17 @@ Objects.getAllPropertyNames =
  * @param {NonPrimitive} object
  * @returns {BareObject<PropertyDescriptor>}
  */
-Objects.getOwnPropertyDescriptorsByName =
-	function getOwnPropertyDescriptorsByName(object) {
-		tc.expectNonPrimitive(object);
-		const rv = Object.create(null);
-		const ownPropertyNames = Object.getOwnPropertyNames(object);
-		for(const propertyName of ownPropertyNames) {
-			rv[propertyName] = (
-				Object.getOwnPropertyDescriptor(object, propertyName)
-			);
-		}
-		return rv;
-	};
+export function getOwnPropertyDescriptorsByName(object) {
+	tc.expectNonPrimitive(object);
+	const rv = Object.create(null);
+	const ownPropertyNames = Object.getOwnPropertyNames(object);
+	for(const propertyName of ownPropertyNames) {
+		rv[propertyName] = (
+			Object.getOwnPropertyDescriptor(object, propertyName)
+		);
+	}
+	return rv;
+}
 
 /**
  * @param {NonPrimitive} object
@@ -465,7 +491,7 @@ Objects.getOwnPropertyDescriptorsByName =
  * @param {boolean} [options.ignoreSymbols]
  * @returns {PropertyKey[][]}
  */
-Objects.getOwnPropertyPaths = function getOwnPropertyPaths(
+export function getOwnPropertyPaths(
 	object,
 	options = {"ignoreSymbols": false},
 ) {
@@ -477,9 +503,9 @@ Objects.getOwnPropertyPaths = function getOwnPropertyPaths(
 		: false
 	);
 	tc.expectBoolean(ignoreSymbols);
-	const rv = [];
+	const rv = [] as PropertyKey[][];
 	const visited = new Set();
-	const path = [];
+	const path = [] as PropertyKey[];
 	(function collect(node) {
 		visited.add(node);
 		const ownKeys = (
@@ -503,7 +529,7 @@ Objects.getOwnPropertyPaths = function getOwnPropertyPaths(
 		}
 	}(object));
 	return rv;
-};
+}
 
 /**
  * Gets all own named property values of an object.
@@ -515,72 +541,67 @@ Objects.getOwnPropertyPaths = function getOwnPropertyPaths(
  *   accessing a property causes an error.
  * @returns {string[]}
  */
-Objects.getOwnPropertyValues =
-	function getOwnPropertyValues(object, fallbackValue = undefined) {
-		tc.expectNonPrimitive(object);
-		const rv = [];
-		const names = Object.getOwnPropertyNames(object);
-		for(let i = 0; i < names.length; i++) {
-			try {
-				rv[i] = object[names[i]];
-			} catch{
-				rv[i] = fallbackValue;
-			}
+export function getOwnPropertyValues(object, fallbackValue = undefined) {
+	tc.expectNonPrimitive(object);
+	const rv = [] as any[];
+	const names = Object.getOwnPropertyNames(object);
+	for(let i = 0; i < names.length; i++) {
+		try {
+			rv[i] = object[names[i]];
+		} catch{
+			rv[i] = fallbackValue;
 		}
-		return rv;
-	};
+	}
+	return rv;
+}
 
 /**
  * @param {NonPrimitive} object
  * @param {PropertyKey} key
  * @returns {(PropertyDescriptor | undefined)}
  */
-Objects.getPropertyDescriptor =
-	function getPropertyDescriptor(object, key) {
-		tc.expectNonPrimitive(object);
-		tc.expectPropertyKey(key);
-		if(!(key in object)) return undefined;
-		let descriptor = Object.getOwnPropertyDescriptor(object, key);
-		let proto = object;
-		while(descriptor === undefined) {
-			proto = Object.getPrototypeOf(proto);
-			descriptor = Object.getOwnPropertyDescriptor(proto, key);
-		}
-		return descriptor;
-	};
+export function getPropertyDescriptor(object, key) {
+	tc.expectNonPrimitive(object);
+	tc.expectPropertyKey(key);
+	if(!(key in object)) return undefined;
+	let descriptor = Object.getOwnPropertyDescriptor(object, key);
+	let proto = object;
+	while(descriptor === undefined) {
+		proto = Object.getPrototypeOf(proto);
+		descriptor = Object.getOwnPropertyDescriptor(proto, key);
+	}
+	return descriptor;
+}
 
 /**
  * @param {NonPrimitive} object
  * @param {PropertyKey} key
  * @returns {Array<*>}
  */
-Objects.getPropertyValueChain =
-	function getPropertyValueChain(object, key) {
-		return [...Objects.iterPropertyValueChain(object, key)];
-	};
+export function getPropertyValueChain(object, key) {
+	return [...Objects.iterPropertyValueChain(object, key)];
+}
 
 /**
  * @param {NonPrimitive} object
  * @returns {(Function | undefined)}
  */
-Objects.getSpecies =
-	function getSpecies(object) {
-		tc.expectNonPrimitive(object);
-		// @ts-ignore
-		if(typeof Symbol !== "function" || Symbol.species !== "symbol") {
-			return undefined;
-		}
-		const species = object[Symbol.species];
-		if(typeof species === "function") return species;
+export function getSpecies(object) {
+	tc.expectNonPrimitive(object);
+	// @ts-ignore
+	if(typeof Symbol !== "function" || Symbol.species !== "symbol") {
 		return undefined;
-	};
+	}
+	const species = object[Symbol.species];
+	if(typeof species === "function") return species;
+	return undefined;
+}
 
 /**
  * @param {object} object
  * @returns {string}
  */
-Objects.getTag =
-	function getTag(object) {
+export function getTag(object) {
 		tc.expectNonPrimitive(object);
 		// @ts-ignore
 		if(typeof Symbol === "function" && Symbol.toStringTag === "symbol") {
@@ -595,8 +616,7 @@ Objects.getTag =
  * @param {PropertyKey} key
  * @returns {boolean}
  */
-Objects.hasAccessorProperty =
-	function hasAccessorProperty(object, key) {
+export function hasAccessorProperty(object, key) {
 		tc.expectNonPrimitive(object);
 		tc.expectPropertyKey(key);
 		if(!(key in object)) return false;
@@ -610,39 +630,36 @@ Objects.hasAccessorProperty =
  * @param {PropertyKey} key
  * @returns {boolean}
  */
-Objects.hasConfigurableProperty =
-	function hasConfigurableProperty(object, key) {
-		tc.expectNonPrimitive(object);
-		tc.expectPropertyKey(key);
-		const descriptor = (
-			Object.getOwnPropertyDescriptor(object, key)
-		);
-		if(descriptor === null || descriptor === undefined) return false;
-		return descriptor.configurable === true;
-	};
+export function hasConfigurableProperty(object, key) {
+	tc.expectNonPrimitive(object);
+	tc.expectPropertyKey(key);
+	const descriptor = (
+		Object.getOwnPropertyDescriptor(object, key)
+	);
+	if(descriptor === null || descriptor === undefined) return false;
+	return descriptor.configurable === true;
+}
 
 /**
  * @param {NonPrimitive} object
  * @param {PropertyKey} key
  * @returns {boolean}
  */
-Objects.hasDataProperty =
-	function hasDataProperty(object, key) {
-		tc.expectNonPrimitive(object);
-		tc.expectPropertyKey(key);
-		if(!(key in object)) return false;
-		const descriptor = Objects.getPropertyDescriptor(object, key);
-		if(descriptor === null || descriptor === undefined) return false;
-		return "value" in descriptor;
-	};
+export function hasDataProperty(object, key) {
+	tc.expectNonPrimitive(object);
+	tc.expectPropertyKey(key);
+	if(!(key in object)) return false;
+	const descriptor = Objects.getPropertyDescriptor(object, key);
+	if(descriptor === null || descriptor === undefined) return false;
+	return "value" in descriptor;
+}
 
 /**
  * @param {NonPrimitive} object
  * @param {PropertyKey} key
  * @returns {boolean}
  */
-Objects.hasEnumerableProperty =
-	function hasEnumerableProperty(object, key) {
+export function hasEnumerableProperty(object, key) {
 		tc.expectNonPrimitive(object);
 		tc.expectPropertyKey(key);
 		return Object.prototype.propertyIsEnumerable.call(object, key);
@@ -653,8 +670,7 @@ Objects.hasEnumerableProperty =
  * @param {PropertyKey} key
  * @returns {boolean}
  */
-Objects.hasOwnAccessorProperty =
-	function hasOwnAccessorProperty(object, key) {
+export function hasOwnAccessorProperty(object, key) {
 		tc.expectNonPrimitive(object);
 		tc.expectPropertyKey(key);
 		const descriptor = Object.getOwnPropertyDescriptor(object, key);
@@ -667,8 +683,7 @@ Objects.hasOwnAccessorProperty =
  * @param {PropertyKey} key
  * @returns {boolean}
  */
-Objects.hasOwnDataProperty =
-	function hasOwnDataProperty(object, key) {
+export function hasOwnDataProperty(object, key) {
 		tc.expectNonPrimitive(object);
 		tc.expectPropertyKey(key);
 		const descriptor = Object.getOwnPropertyDescriptor(object, key);
@@ -681,27 +696,25 @@ Objects.hasOwnDataProperty =
  * @param {PropertyKey} key
  * @returns {boolean}
  */
-Objects.hasOwnProperty =
-	function hasOwnProperty(object, key) {
-		tc.expectNonPrimitive(object);
-		tc.expectPropertyKey(key);
-		return Object.prototype.hasOwnProperty.call(object, key);
-	};
+export function hasOwnProperty(object, key) {
+	tc.expectNonPrimitive(object);
+	tc.expectPropertyKey(key);
+	return Object.prototype.hasOwnProperty.call(object, key);
+}
 
 /**
  * @param {NonPrimitive} object
  * @param {PropertyKey} key
  * @returns {boolean}
  */
-Objects.hasWritableProperty =
-	function hasWritableProperty(object, key) {
-		tc.expectNonPrimitive(object);
-		tc.expectPropertyKey(key);
-		const descriptor = (
-			Object.getOwnPropertyDescriptor(object, key)
-		);
-		return descriptor ? descriptor.writable === true : false;
-	};
+export function hasWritableProperty(object, key) {
+	tc.expectNonPrimitive(object);
+	tc.expectPropertyKey(key);
+	const descriptor = (
+		Object.getOwnPropertyDescriptor(object, key)
+	);
+	return descriptor ? descriptor.writable === true : false;
+}
 
 /**
  * @generator
@@ -709,45 +722,42 @@ Objects.hasWritableProperty =
  * @param {PropertyKey} propertyKey
  * @yields {*}
  */
-Objects.iterPropertyValueChain =
-	function* iterPropertyValueChain(object, propertyKey) {
-		tc.expectNonPrimitive(object);
-		tc.expectPropertyKey(propertyKey);
-		let currentValue = object;
-		const visitedObjects = new WeakSet();
-		while(propertyKey in currentValue) {
-			currentValue = currentValue[propertyKey];
-			if(visitedObjects.has(currentValue)) return;
-			if(new Object(currentValue) === currentValue) {
-				visitedObjects.add(currentValue);
-			}
-			yield currentValue;
-			if(currentValue === undefined || currentValue === null) return;
+export function* iterPropertyValueChain(object, propertyKey) {
+	tc.expectNonPrimitive(object);
+	tc.expectPropertyKey(propertyKey);
+	let currentValue = object;
+	const visitedObjects = new WeakSet();
+	while(propertyKey in currentValue) {
+		currentValue = currentValue[propertyKey];
+		if(visitedObjects.has(currentValue)) return;
+		if(new Object(currentValue) === currentValue) {
+			visitedObjects.add(currentValue);
 		}
-	};
+		yield currentValue;
+		if(currentValue === undefined || currentValue === null) return;
+	}
+}
 
 /**
  * @param {any} arg
  * @returns {string}
  */
-Objects.toString =
-	function toString(arg) {
-		return Object.prototype.toString.call(arg);
-	};
+export function toString(arg) {
+	return Object.prototype.toString.call(arg);
+}
 
 /**
  * @param {Record<string, *>} object
  * @param {...*} args
  * @returns {object}
  */
-Objects.unassign =
-	function unassign(object, ...args) {
-		tc.expectNonPrimitive(object);
-		for(const arg of args) {
-			if(arg === null || arg === undefined) continue;
-			for(const key of Object.keys(arg)) delete object[key];
-		}
-		return object;
-	};
+export function unassign(object, ...args) {
+	tc.expectNonPrimitive(object);
+	for(const arg of args) {
+		if(arg === null || arg === undefined) continue;
+		for(const key of Object.keys(arg)) delete object[key];
+	}
+	return object;
+}
 
 export default Objects;

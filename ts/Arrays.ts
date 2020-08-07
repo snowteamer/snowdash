@@ -1,5 +1,5 @@
 /**
- * @file Arrays.js - Utilities for array-like objects and values.
+ * @file Arrays.ts - Utilities for array-like objects and values.
  *
  * All these functions expect an array-like value as first argument.
  * Some of these functions expect a mutable array-like object
@@ -61,110 +61,197 @@
  * @typedef {function(T): boolean} Predicate
  */
 
+type index = number;
+type int = number;
+type length = number;
+type uint = number;
+
+type ArrayCallback<T> = (element: T, index?: index, source?: T[]) => void;
+type ArrayMappingFunction<T, U> = (element: T, index?: index, source?: T[]) => U;
+type ArrayPredicate<T> = (element: T, index?: index, source?: T[]) => boolean;
+type ArrayReducer<T, U> = (acc: U, element: T, index: index, source: T[]) => U;
+type ArraySortFunction<T> = (element: T, other: T) => number;
+type List<T> = ArrayLike<T>;
+type Mutable<T> = T & {-readonly[P in keyof T]: T[P]};
+type MutableArrayLike<T> = Mutable<ArrayLike<T>>; 
+type NumberPropertyKeys<T> = { [K in keyof T]: T[K] extends number ? K : never }[keyof T];
+type Predicate<T> = (arg: T) => boolean;
+
 import * as tc from "tc";
 
-const Arrays = {};
 
-if(typeof Symbol === "function" && typeof Symbol.toStringTag === "symbol") {
-	Arrays[Symbol.toStringTag] = "core.Arrays";
+const Arrays = {
+	concat,
+	every,
+	filter,
+	fill,
+	find,
+	findIndex,
+	forEach,
+	indexOf,
+	map,
+	reduce,
+	shift,
+	unshift,
+	slice,
+	some,
+	sort,
+
+	add,
+	addAll,
+	chunk,
+	condense,
+	contains,
+	containsAll,
+	copy,
+	count,
+	countBigram,
+	countNgram,
+	countWith,
+	createArray2D,
+	createBigrams,
+	createCumulativeSums,
+	createDuplicateSet,
+	createFrequencyMap,
+	createIndexMap,
+	createIndexPairs,
+	createNgrams,
+	createPairs,
+	createPermutation,
+	createRange,
+	cross,
+	dedupe,	
+	drop,
+	dropWhile,
+	generateCombinations,
+	generateIndexCombinations,
+	generateIndexPermutations,
+	generatePermutations,
+	generateTuples,
+	getNeighborhood,
+	getNeighborhoodOfSlice,
+	getOwnPropertyNames,
+	group,
+	groupWith,
+	indicesOf,
+	indicesOfNgram,
+	insertAt,
+	isClean,
+	isUnique,
+	max,
+	maxBy,
+	maxPropertyValue,
+	min,
+	minBy,
+	minPropertyValue,
+	pluck,
+	shallowEquals,
+	sortBy,
+	sortWith,
+	swap,
+	zip,
+	[Symbol.toStringTag]: "snowdash.Arrays",
 }
 
 const call = Function.prototype.call.bind(Function.prototype.call);
-const map = Function.prototype.call.bind(Array.prototype.map);
-const reduce = Function.prototype.call.bind(Array.prototype.reduce);
-const slice = Function.prototype.call.bind(Array.prototype.slice);
-const sort = Function.prototype.call.bind(Array.prototype.sort);
-const splice = Function.prototype.call.bind(Array.prototype.splice);
+const _map: <T, U>(list: List<T>, mapfn: ArrayMappingFunction<T, U>) => U[] = (
+	Function.prototype.call.bind(Array.prototype.map)
+);
+function _reduce<T, U>(list: List<T>, fn: ArrayReducer<T, U>, initialValue: U): U;
+function _reduce<T>(list: List<T>, fn: ArrayReducer<T, T>): T;
+function _reduce(list: any, fn: any, initialValue?: any) {
+	return Array.prototype.reduce.call(list, fn, initialValue);
+}
+const _slice: <T>(list: List<T>, from?: int, to?: int) => T[] = (
+	Function.prototype.call.bind(Array.prototype.slice)
+);
+const _sort: <T>(list: List<T>, fn: ArraySortFunction<T>) => typeof list = (
+	Function.prototype.call.bind(Array.prototype.sort)
+);
+const _splice = Function.prototype.call.bind(Array.prototype.splice);
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {ArrayPredicate<T>} fn
  * @param {*} [thisArg]
  * @returns {boolean}
  */
-Arrays.every = function every(list, fn, thisArg = undefined) {
+export function every<T>(list: ArrayLike<T>, fn: ArrayPredicate<T>, thisArg?: any): boolean {
 	tc.expectArrayLike(list);
 	tc.expectFunction(fn);
 	return Array.prototype.every.call(list, fn, thisArg);
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {T} arg
- * @param {uint} [from=0]
- * @param {uint} [to]
+ * @param {uin} [from=0]
+ * @param {uin} [to]
  * @returns {ArrayLike<T>}
  */
-Arrays.fill = function fill(list, arg, from = 0, to = undefined) {
+export function fill<T>(list: List<T>, arg: any, from: int = 0, to?: int): List<T> {
 	tc.expectArrayLike(list);
 	return Array.prototype.fill.call(list, arg, from, to);
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {ArrayPredicate<T>} predicate
  * @param {*} [thisArg]
  * @returns {ArrayLike<T>}
  */
-Arrays.filter = function filter(list, predicate, thisArg = undefined) {
+export function filter<T>(list: List<T>, predicate: ArrayPredicate<T>, thisArg?: any): List<T> {
 	tc.expectArrayLike(list);
 	tc.expectFunction(predicate);
 	return Array.prototype.filter.call(list, predicate, thisArg);
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {ArrayPredicate<T>} predicate
  * @param {*} thisArg
  * @returns {T}
  */
-Arrays.find = function find(list, predicate, thisArg = undefined) {
+export function find<T>(list: List<T>, predicate: ArrayPredicate<T>, thisArg?: any): T | undefined {
 	tc.expectArrayLike(list);
 	tc.expectFunction(predicate);
 	return Array.prototype.find.call(list, predicate, thisArg);
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {ArrayPredicate<T>} fn
  * @param {*} thisArg
  * @returns {int}
  */
-Arrays.findIndex = function findIndex(list, fn, thisArg = undefined) {
+export function findIndex<T>(list: List<T>, fn: ArrayPredicate<T>, thisArg?: any): int {
 	tc.expectArrayLike(list);
 	tc.expectFunction(fn);
 	return Array.prototype.findIndex.call(list, fn, thisArg);
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {ArrayCallback<T>} fn
  * @param {*} [thisArg]
  */
-Arrays.forEach = function forEach(list, fn, thisArg = undefined) {
+export function forEach<T>(list: List<T>, fn: ArrayCallback<T>, thisArg?: any) {
 	tc.expectArrayLike(list);
 	tc.expectFunction(fn);
 	Array.prototype.forEach.call(list, fn, thisArg);
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {T} arg
  * @param {uint} [start=0]
  * @returns {int}
  */
-Arrays.indexOf = function indexOf(list, arg, start = 0) {
+export function indexOf<T>(list: List<T>, arg: any, start = 0): int {
 	tc.expectArrayLike(list);
 	tc.expectPositiveInteger(start);
 	return Array.prototype.indexOf.call(list, arg, start);
-};
+}
 
 /**
  * @template T, U
@@ -173,39 +260,11 @@ Arrays.indexOf = function indexOf(list, arg, start = 0) {
  * @param {*} [thisArg]
  * @returns {U[]}
  */
-Arrays.map = function map(list, mapfn, thisArg = undefined) {
+export function map<T, U>(list: List<T>, mapfn: ArrayMappingFunction<T, U>, thisArg?: any): U[] {
 	tc.expectArrayLike(list);
 	tc.expectFunction(mapfn);
-	// @ts-ignore
-	return Array.prototype.map.call(list, mapfn, thisArg);
-};
-
-/**
- * @template T
- * @param {ArrayLike<T>} list
- * @param {uint} [from]
- * @param {uint} [to]
- * @returns {T[]}
- */
-Arrays.slice = function slice(list, from = 0, to = undefined) {
-	tc.expectArrayLike(list);
-	if("1" in arguments) tc.expectInteger(from);
-	if("2" in arguments) tc.expectInteger(to);
-	return Array.prototype.slice.call(list, from, to);
-};
-
-/**
- * @template T
- * @param {ArrayLike<T>} list
- * @param {ArrayPredicate<T>} fn
- * @param {*} [thisArg]
- * @returns {boolean}
- */
-Arrays.some = function some(list, fn, thisArg = undefined) {
-	tc.expectArrayLike(list);
-	tc.expectFunction(fn);
-	return Array.prototype.some.call(list, fn, thisArg);
-};
+	return Array.prototype.map.call(list, mapfn, thisArg) as U[];
+}
 
 /**
  * @template T, U
@@ -214,76 +273,94 @@ Arrays.some = function some(list, fn, thisArg = undefined) {
  * @param {U} [initialValue]
  * @returns {*}
  */
-Arrays.reduce = function reduce(list, fn, initialValue = undefined) {
+export function reduce<T, U>(list: List<T>, fn: ArrayReducer<T, U>, initialValue: U): U;
+export function reduce<T>(list: List<T>, fn: ArrayReducer<T, T>): T;
+export function reduce<T>(list: List<T>, fn: ArrayReducer<T, any>, initialValue?: any): any {
 	tc.expectArrayLike(list);
 	tc.expectFunction(fn);
 	return Array.prototype.reduce.call(list, fn, initialValue);
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @returns {T}
  */
-Arrays.shift = function shift(list) {
+export function shift<T>(list: List<T>): T {
 	tc.expectArrayLike(list);
 	return Array.prototype.shift.call(list);
-};
+}
 
 /**
- * @template T
+ * @param {ArrayLike<T>} list
+ * @param {ArrayPredicate<T>} predicate
+ * @returns {boolean}
+ */
+export function some<T>(list: List<T>, predicate: ArrayPredicate<T>): boolean {
+	tc.expectArrayLike(list);
+	return Array.prototype.some.call(list, predicate);
+}
+
+/**
+ * @param {MutableArrayLike<T>} list
+ * @param {ArraySortFunction<T>} fn
+ * @returns {MutableArrayLike<T>}
+ */
+export function sort<T>(list: MutableArrayLike<T>, fn?: ArraySortFunction<T>): typeof list {
+	tc.expectArrayLike(list);
+	return Array.prototype.sort.call(list, fn);
+}
+
+/**
  * @param {ArrayLike<T>} list
  * @param {*} arg
  * @returns {uint} The new length of the given object,
  *   like the native '.unshift()' method does.
  */
-Arrays.unshift = function unshift(list, arg) {
+export function unshift<T>(list: List<T>, arg: any): uint {
 	tc.expectArrayLike(list);
 	return Array.prototype.unshift.call(list, arg);
-};
+}
 
 
 // ====== OTHER ====== //
 
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {T} arg
  */
-Arrays.add = function add(list, arg) {
+export function add<T>(list: List<T>, arg: any) {
 	tc.expectArrayLike(list);
 	Array.prototype.push.call(list, arg);
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {ArrayLike<T>} otherList
  */
-Arrays.addAll = function addAll(list, otherList) {
+export function addAll<T>(list: List<T>, otherList: List<T>) {
 	tc.expectArrayLike(list);
 	tc.expectArrayLike(otherList);
-	Array.prototype.push.call(list, ...otherList);
-};
+	for(let i = 0; i < otherList.length; i++) {
+		Array.prototype.push.call(list, otherList[i]);
+	}
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @returns {T}
  */
-Arrays.choose = function choose(list) {
+export function choose<T>(list: List<T>): T {
 	tc.expectArrayLike(list);
 	return list[Math.floor(list.length * Math.random())];
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {uint} n
  * @returns {T[]}
  */
-Arrays.chooseTuple = function chooseTuple(list, n) {
+export function chooseTuple<T>(list: List<T>, n: length): T[] {
 	tc.expectArrayLike(list);
 	tc.expectPositiveInteger(n);
 	const rv = new Array(n);
@@ -291,25 +368,24 @@ Arrays.chooseTuple = function chooseTuple(list, n) {
 		rv[i] = list[Math.floor(list.length * Math.random())];
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {uint} chunkSize
  * @returns {T[][]}
  * @note The last chunk may be shorter.
  */
-Arrays.chunk = function chunk(list, chunkSize) {
+export function chunk<T>(list: List<T>, chunkSize: uint): T[][] {
 	tc.expectArrayLike(list);
 	tc.expectStrictlyPositiveInteger(chunkSize);
 	const n = chunkSize;
-	const rv = [];
+	const rv = [] as T[][];
 	for(let i = 0; i < list.length; i += n) {
-		rv[rv.length] = slice(list, i, i + n);
+		rv[rv.length] = _slice(list, i, i + n);
 	}
 	return rv;
-};
+}
 
 /**
  * A static version of `.concat()`.
@@ -319,20 +395,19 @@ Arrays.chunk = function chunk(list, chunkSize) {
  * @param {...*} args
  * @returns {*[]}
  */
-Arrays.concat = function concat(list, ...args) {
+export function concat<T>(list: List<T>, ...args: any[]): any[] {
 	tc.expectArrayLike(list);
 	return Array.prototype.concat.apply(list, args);
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @returns {T[]} A new array in which subsequences of
  *   consecutive and identical elements are replaced by their first element.
  * @example Arrays.condense([1, 0, 1, 1, 2, 2, 2, 0]);
  * // [ 1, 0, 1, 2, 0 ]
  */
-Arrays.condense = function condense(list) {
+export function condense<T>(list: List<T>): T[] {
 	if(list.length === 0) return [];
 	let currentValue = list[0];
 	const rv = [currentValue];
@@ -343,26 +418,24 @@ Arrays.condense = function condense(list) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {T} arg
  * @returns {boolean}
  */
-Arrays.contains = function contains(list, arg) {
+export function contains<T>(list: List<T>, arg: any): boolean {
 	tc.expectArrayLike(list);
 	return Array.prototype.includes.call(list, arg);
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {ArrayLike<T>} otherList
  * @returns {boolean}
  */
-Arrays.containsAll = function containsAll(list, otherList) {
+export function containsAll<T>(list: List<T>, otherList: List<T>): boolean {
 	tc.expectArrayLike(list);
 	for(let i = 0; i < otherList.length; i++) {
 		if(!Array.prototype.includes.call(list, otherList[i])) {
@@ -370,43 +443,40 @@ Arrays.containsAll = function containsAll(list, otherList) {
 		}
 	}
 	return true;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @returns {T[]}
  */
-Arrays.copy = function copy(list) {
+export function copy<T>(list: List<T>): List<T> {
 	tc.expectArrayLike(list);
 	return Array.prototype.slice.call(list, 0);
-};
+}
 
 /**
  * Returns the number of occurences of the given value among
  * the elements of the given array-like value, using strict equality.
  *
- * @template T
  * @param {ArrayLike<T>} list
  * @param {T} arg
  * @returns {uint}
  */
-Arrays.count = function count(list, arg) {
+export function count<T>(list: List<T>, arg: any): uint {
 	tc.expectArrayLike(list);
 	let rv = 0;
 	for(let i = 0; i < list.length; i++) {
 		if(list[i] === arg) ++rv;
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {[T, T]} bigram
  * @returns {uint}
  */
-Arrays.countBigram = function countBigram(list, bigram) {
+export function countBigram<T>(list: List<T>, bigram: [T, T]): uint {
 	tc.expectArrayLike(list);
 	tc.expectArrayLike(bigram);
 	const [a, b] = bigram;
@@ -417,16 +487,15 @@ Arrays.countBigram = function countBigram(list, bigram) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {ArrayPredicate<T>} predicate
  * @param {*} [thisArg]
  * @returns {uint}
  */
-Arrays.countWith = function countWith(list, predicate, thisArg = undefined) {
+export function countWith<T>(list: List<T>, predicate: ArrayPredicate<T>, thisArg?: any): uint {
 	tc.expectArrayLike(list);
 	tc.expectFunction(predicate);
 	let rv = 0;
@@ -434,16 +503,15 @@ Arrays.countWith = function countWith(list, predicate, thisArg = undefined) {
 		if(call(predicate, thisArg, list[i], i, list)) rv++;
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {ArrayLike<T>} ngram
  * @returns {uint}
  * @example Arrays.countNgram("mississippi", "si"); // 2
  */
-Arrays.countNgram = function countNgram(list, ngram) {
+export function countNgram<T>(list: List<T>, ngram: List<T>): uint {
 	tc.expectArrayLike(list);
 	if(!list.length) return 0;
 	tc.expectNonEmptyArrayLike(ngram);
@@ -461,20 +529,19 @@ Arrays.countNgram = function countNgram(list, ngram) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {uint} m
  * @param {uint} n
  * @param {*=} defaultValue
  * @returns {T[][]}
  */
-Arrays.createArray2D = function createArray2D(
-	m,
-	n,
-	defaultValue = undefined,
-) {
+export function createArray2D(
+	m: uint,
+	n: uint,
+	defaultValue: any = undefined,
+): any[][] {
 	tc.expectPositiveInteger(m);
 	tc.expectPositiveInteger(n);
 	const rv = new Array(m);
@@ -491,10 +558,9 @@ Arrays.createArray2D = function createArray2D(
 		}
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {T[]} list
  * @returns {T[][]}
  * @example Arrays.createBigrams([1, 2, 3, 4]);
@@ -502,41 +568,40 @@ Arrays.createArray2D = function createArray2D(
  * @note Returned bigrams will always be plain 2-element arrays,
  *   notwithstanding the constructor of the given list.
  */
-Arrays.createBigrams = function createBigrams(list) {
+export function createBigrams<T>(list: List<T>): T[][] {
 	tc.expectArrayLike(list);
-	const rv = [];
+	const rv = [] as [T, T][];
 	for(let i = 0; i < list.length - 1; ++i) {
 		rv[rv.length] = [list[i], list[i + 1]];
 	}
 	return rv;
-};
+}
 
 /**
  * @param {(number[] | string[])} list
  * @returns {(number[] | string[])}
  * @example Arrays.createCumulativeSums([1, 2, 3, 4]); // [1, 3, 6, 10]
  */
-Arrays.createCumulativeSums = function createCumulativeSums(list) {
+export function createCumulativeSums(list: List<number>): number[] {
 	tc.expectArrayLike(list);
-	return reduce(
+	return _reduce(
 		list,
 		(acc, element, index) => {
 			acc[index] = (index > 0 ? acc[index - 1] + element : element);
 			return acc;
 		},
-		[],
+		[] as number[],
 	);
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @returns {Set<T>}
  */
-Arrays.createDuplicateSet = function createDuplicateSet(list) {
+export function createDuplicateSet<T>(list: List<T>): Set<T> {
 	tc.expectArrayLike(list);
-	const rv = new Set();
-	const visitedValues = new Set();
+	const rv = new Set() as Set<T>;
+	const visitedValues = new Set() as Set<T>;
 	for(let i = 0; i < list.length; ++i) {
 		const element = list[i];
 		if(visitedValues.has(element)) {
@@ -545,14 +610,13 @@ Arrays.createDuplicateSet = function createDuplicateSet(list) {
 		else visitedValues.add(element);
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @returns {Map<T, uint>}
  */
-Arrays.createFrequencyMap = function createFrequencyMap(list) {
+export function createFrequencyMap<T>(list: List<T>): Map<T, uint> {
 	tc.expectArrayLike(list);
 	const rv = new Map();
 	for(let i = 0; i < list.length; ++i) {
@@ -560,14 +624,13 @@ Arrays.createFrequencyMap = function createFrequencyMap(list) {
 		rv.set(element, (rv.get(element) || 0) + 1);
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @returns {Map<T, uint[]>}
  */
-Arrays.createIndexMap = function createIndexMap(list) {
+export function createIndexMap<T>(list: List<T>): Map<T, index[]> {
 	tc.expectArrayLike(list);
 	const rv = new Map();
 	for(let i = 0; i < list.length; ++i) {
@@ -576,16 +639,15 @@ Arrays.createIndexMap = function createIndexMap(list) {
 		else rv.set(element, [i]);
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @returns {uint[][]}
  */
-Arrays.createIndexPairs = function createIndexPairs(list) {
+export function createIndexPairs<T>(list: List<T>): [index, index][] {
 	tc.expectArrayLike(list);
-	const rv = [];
+	const rv = [] as [index, index][];
 	const {length} = list;
 	for(let i = 0; i < length - 1; ++i) {
 		for(let j = i + 1; j < length; ++j) {
@@ -593,148 +655,105 @@ Arrays.createIndexPairs = function createIndexPairs(list) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {uint} ngramLength
  * @returns {T[][]}
  * @note The last ngram may be shorter.
  */
-Arrays.createNgrams = function createNgrams(list, ngramLength) {
+export function createNgrams<T>(list: List<T>, ngramLength: length): T[][] {
 	tc.expectArrayLike(list);
 	tc.expectPositiveInteger(ngramLength);
-	const rv = [];
+	const rv = [] as T[][];
 	for(let i = 0; i < list.length; ++i) {
-		rv[rv.length] = slice(list, i, i + ngramLength);
+		rv[rv.length] = _slice(list, i, i + ngramLength);
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @returns {T[][]}
  */
-Arrays.createPairs = function createPairs(list) {
+export function createPairs<T>(list: List<T>): T[][] {
 	tc.expectArrayLike(list);
-	const rv = [];
+	const rv = [] as T[][];
 	for(let i = 0; i < list.length - 1; ++i) {
 		for(let j = i + 1; j < list.length; ++j) {
 			rv[rv.length] = [list[i], list[j]];
 		}
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {ArrayLike<uint>} indices
  * @returns {T[]}
  */
-Arrays.createPermutation = function createPermutation(list, indices) {
+export function createPermutation<T>(list: List<T>, indices: index[]): T[] {
 	tc.expectArrayLike(list);
 	tc.expectArrayLike(indices);
-	if(list.length !== indices.length) {
-		throw new TypeError("'list.length !== indices.length'");
+	if(list.length !== new Set(indices).size) {
+		throw new TypeError("Invalid permutation indices.");
 	}
-	return map(indices, (_, i) => list[indices[i]]);
-};
+	return _map(indices, index => list[index]);
+}
 
 /**
- * Creates an integer range from 0 to the given integer, not including it.
- *
  * @param {index} to
  * @returns {index[]}
- * @example Arrays.createRange(5); // -> [0, 1, 2, 3, 4]
  */
-Arrays.createRange = function createRange(to) {
+export function createRange(to: index): index[] {
 	tc.expectPositiveInteger(to);
 	return [...new Array(to).keys()];
-};
-
-/**
- * Creates an integer range.
- *
- * @param {int} from
- * @param {int} to
- * @param {int} [step=1]
- * @param {index} to
- * @returns {int[]}
- * @example Arrays.createRangeFromTo(1, 5); // -> [1, 2, 3, 4]
- * @example Arrays.createRangeFromTo(1, -5, -1); // -> [1, 0, -1, -2, -3, -4]
- */
-Arrays.createRangeFromTo = function createRangeFromTo(from, to, step = 1) {
-	tc.expectInteger(from);
-	tc.expectInteger(to);
-	tc.expectInteger(step);
-	if(step === 0) {
-		throw new TypeError("argument 'step' cannot be 0.");
-	}
-	if(from > to && step > 0) {
-		throw new TypeError(
-			"argument 'to' cannot be lower than 'from' unless 'step' is negative."
-		);
-	}
-	if(from < to && step < 0) {
-		throw new TypeError(
-			"argument 'to' cannot be greater than 'from' since 'step' is negative."
-		);
-	}
-	if(step === 1) return Array.from(new Array(to - from), (_, i) => from + i);
-	if(step === -1) return Array.from(new Array(from - to), (_, i) => from - i);
-	return Array.from(new Array(Math.floor(Math.abs(from - to) / step)), (_, i) => from + i * step);
-};
+}
 
 /**
  * @template T, U
  * @param {T[]} list
  * @param {U[]} otherList
- * @returns {[T, U]} The cartesian product of the given collections.
+ * @returns {[T, U][]} The cartesian product of the given collections.
  * @example Arrays.cross("ABCD", "1234");
  */
-Arrays.cross = function cross(list, otherList) {
+export function cross<T, U>(list: List<T>, otherList: List<U>): [T, U][][] {
 	tc.expectArrayLike(list);
 	tc.expectArrayLike(otherList);
-	// @ts-ignore
-	return map(list, (element) => map(otherList, (f) => [element, f]));
-};
+	return _map(list, (element) => _map(otherList, (f) => [element, f]));
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @returns {T[]}
  * @see nub (Haskell), uniq (Lodash)
  */
-Arrays.dedupe = function dedupe(list) {
+export function dedupe<T>(list: List<T>): T[] {
 	tc.expectArrayLike(list);
-	return [...new Set(slice(list))];
-};
+	return [...new Set(_slice(list))] as T[];
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {uint} n
  * @returns {T[]}
  * @see https://lodash.com/docs/#drop
  */
-Arrays.drop = function drop(list, n) {
+export function drop<T>(list: List<T>, n: uint): T[] {
 	tc.expectArrayLike(list);
 	tc.expectPositiveInteger(n);
-	return slice(list, n);
-};
+	return _slice(list, n);
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {Predicate<T>} predicate
  * @param {*} [thisArg]
  * @returns {T[]}
  * @see https://lodash.com/docs/#dropWhile
  */
-Arrays.dropWhile = function dropWhile(list, predicate, thisArg = undefined) {
+export function dropWhile<T>(list: List<T>, predicate: Predicate<T>, thisArg?: any): T[] {
 	tc.expectArrayLike(list);
 	tc.expectFunction(predicate);
 	const index = Array.prototype.findIndex.call(
@@ -743,11 +762,10 @@ Arrays.dropWhile = function dropWhile(list, predicate, thisArg = undefined) {
 		thisArg,
 	);
 	if(index === -1) return [];
-	return slice(list, index);
-};
+	return _slice(list, index);
+}
 
 /**
- * @template T
  * @generator
  * @param {ArrayLike<T>} list
  * @param {uint} k
@@ -756,7 +774,7 @@ Arrays.dropWhile = function dropWhile(list, predicate, thisArg = undefined) {
  * @example
  * [...Arrays.generateCombinations(["A", "B", "C", "D", "E"], 3)];
  */
-Arrays.generateCombinations = function* generateCombinations(list, k) {
+export function* generateCombinations<T>(list: List<T>, k: uint): Generator<T[]> {
 	tc.expectArrayLike(list);
 	tc.expectPositiveInteger(k);
 	tc.expectPositiveInteger(list.length - k);
@@ -764,7 +782,7 @@ Arrays.generateCombinations = function* generateCombinations(list, k) {
 	for(const indices of Arrays.generateIndexCombinations(n, k)) {
 		yield indices.map((i) => list[i]);
 	}
-};
+}
 
 /**
  * @generator
@@ -775,11 +793,11 @@ Arrays.generateCombinations = function* generateCombinations(list, k) {
  * @example
  * [...Arrays.generateIndexCombinations(5, 3)];
  */
-Arrays.generateIndexCombinations = function* generateIndexCombinations(n, k) {
+export function* generateIndexCombinations(n: uint, k: uint): Generator<index[]> {
 	tc.expectPositiveInteger(n);
 	tc.expectPositiveInteger(k);
-	const indices = Arrays.createRange(0, k);
-	yield indices.slice();
+	const indices = Arrays.createRange(k);
+	yield indices.slice() as index[];
 	if(!k || !n) return;
 	while(true) {
 		let i = k - 1;
@@ -793,9 +811,9 @@ Arrays.generateIndexCombinations = function* generateIndexCombinations(n, k) {
 		while(i < indices.length - 1) {
 			indices[++i] = ++x;
 		}
-		yield indices.slice();
+		yield indices.slice() as index[];
 	}
-};
+}
 
 /**
  * @generator
@@ -804,8 +822,8 @@ Arrays.generateIndexCombinations = function* generateIndexCombinations(n, k) {
  * @yields {uint[]}
  * @example [...Arrays.generateIndexPermutations(5, 3)];
  */
-Arrays.generateIndexPermutations = function* generateIndexPermutations(n, k) {
-	const indices = new Array(k).fill(0);
+export function* generateIndexPermutations(n: uint, k: uint): Generator<index[]> {
+	const indices = new Array(k).fill(0) as index[];
 	yield indices.slice();
 	if(!k || !n) return;
 	while(true) {
@@ -821,20 +839,19 @@ Arrays.generateIndexPermutations = function* generateIndexPermutations(n, k) {
 		}
 		yield indices.slice();
 	}
-};
+}
 
 /**
- * @template T
  * @generator
  * @param {ArrayLike<T>} list
  * @yields {T[]}
  * @see Heap's algorithm - https://en.wikipedia.org/wiki/Heap%27s_algorithm
  * @example [...Arrays.generatePermutations(["A", "B", "C"])];
  */
-Arrays.generatePermutations = function* generatePermutations(list) {
+export function* generatePermutations<T>(list: List<T>): Generator<T[]> {
 	tc.expectArrayLike(list);
-	const perm = slice(list);
-	const generate = function* generate(n) {
+	const perm = _slice(list);
+	const generate = function* generate(n: length): Generator<T[]> {
 		if(!n) yield perm.slice();
 		else for(let i = 0; i < n; i++) {
 			yield* generate(n - 1);
@@ -843,26 +860,24 @@ Arrays.generatePermutations = function* generatePermutations(list) {
 		}
 	};
 	yield* generate(list.length);
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {uint} k
  * @yields {T[]}
  * @example [...Arrays.generateTuples(["A", "B", "C", "D", "E"], 3)];
  */
-Arrays.generateTuples = function* generateTuples(list, k) {
+export function* generateTuples<T>(list: List<T>, k: uint): Generator<T[]> {
 	tc.expectArrayLike(list);
 	tc.expectPositiveInteger(k);
 	const n = list.length;
 	for(const indices of Arrays.generateIndexPermutations(n, k)) {
 		yield indices.map((index) => list[index]);
 	}
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {int} index
  * @param {uint} [radius=1]
@@ -870,21 +885,20 @@ Arrays.generateTuples = function* generateTuples(list, k) {
  * @example
  * Arrays.getNeighborhood("azertyuiop", 3, 2); // [ 'z', 'e', 'r', 't', 'y' ]
  */
-Arrays.getNeighborhood = function getNeighborhood(list, index, radius = 1) {
+export function getNeighborhood<T>(list: List<T>, index: index, radius = 1): T[] {
 	tc.expectInteger(index);
 	tc.expectPositiveInteger(radius);
 	const origin = (index >= 0 ? index : list.length + index);
-	return slice(
+	return _slice(
 		list,
 		Math.max(0, origin - radius),
 		origin + radius + 1
 	);
-};
+}
 
 /**
  * The returned slice may be shorter if a boundary was encountered.
  *
- * @template T
  * @param {ArrayLike<T>} list
  * @param {int} sliceStart
  * @param {int} sliceEnd
@@ -893,35 +907,55 @@ Arrays.getNeighborhood = function getNeighborhood(list, index, radius = 1) {
  * @example
  * Arrays.getNeighborhoodOfSlice("azertyuiop", 2, 3); // [ 'z', 'e', 'r', 't', 'y' ]
  */
-Arrays.getNeighborhoodOfSlice = function getNeighborhoodOfSlice(
-	list,
-	sliceStart,
-	sliceEnd,
+export function getNeighborhoodOfSlice<T>(
+	list: List<T>,
+	sliceStart: int,
+	sliceEnd: int,
 	radius = 1
-) {
+): T[] {
 	tc.expectInteger(sliceStart);
 	tc.expectInteger(sliceEnd);
 	tc.expectPositiveInteger(radius);
 	const slice0 = (sliceStart >= 0 ? sliceStart : list.length + sliceStart);
 	const slice1 = (sliceEnd >= 0 ? sliceEnd: list.length + sliceEnd);
-	return slice(
+	return _slice(
 		list,
 		Math.max(0, slice0 - radius),
 		slice1 + radius
 	);
-};
+}
+
+/**
+ * Like 'Object.getOwnPropertyNames()', but does not include element indices.
+ *
+ * @param {ArrayLike<*>} list
+ * @returns {string[]}
+ */
+export function getOwnPropertyNames(list: List<any>): string[] {
+	tc.expectArrayLike(list);
+	const {length} = list;
+	const maxLength = 2 ** 32 - 1;
+	const rv = [] as string[];
+	for(const key of Object.getOwnPropertyNames(list)) {
+		if(/^0$|^[1-9]\d*$/.test(key)) {
+			const keyAsInt = Number.parseInt(key, 10);
+			if(keyAsInt > maxLength || keyAsInt >= length) rv[rv.length] = key;
+		}
+		else rv[rv.length] = key;
+	}
+	return rv;
+}
 
 /**
  * Same as 'Arrays.chunk', but starts a new chunk whenever the visited element
  * is distinct from the previous one.
  *
- * @template T
  * @param {ArrayLike<T>} list
  * @returns {T[][]}
  */
-Arrays.group = function group(list) {
+export function group<T>(list: List<T>): T[][] {
 	tc.expectArrayLike(list);
-	const rv = [];
+	const rv = [] as T[][];
 	if(!list.length) return rv;
 	let currentValue = list[0];
 	let currentChunk = [currentValue];
@@ -936,7 +970,7 @@ Arrays.group = function group(list) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
  * @template T, U
@@ -946,10 +980,14 @@ Arrays.group = function group(list) {
  * @returns {T[][]}
  * @see https://docs.python.org/3/library/itertools.html#itertools.groupby
  */
-Arrays.groupWith = function groupWith(list, f, thisArg = undefined) {
+export function groupWith<T, U>(
+	list: List<T>,
+	f: (element: T, index: index, source: ArrayLike<T>) => U,
+	thisArg?: any
+): T[][] {
 	tc.expectArrayLike(list);
 	tc.expectFunction(f);
-	const rv = [];
+	const rv = new Array();
 	if(!list.length) return rv;
 	let currentValue = call(f, thisArg, list[0], 0, list);
 	let currentChunk = [currentValue];
@@ -965,20 +1003,19 @@ Arrays.groupWith = function groupWith(list, f, thisArg = undefined) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {T} arg
  * @param {uint} [from=0]
  * @returns {uint[]}
  */
-Arrays.indicesOf = function indicesOf(list, arg, from = 0) {
+export function indicesOf<T>(list: List<T>, arg: any, from = 0): uint[] {
 	tc.expectArrayLike(list);
 	tc.expectPositiveInteger(from);
 	let i = from;
-	const rv = [];
+	const rv = [] as index[];
 	do {
 		i = Array.prototype.indexOf.call(list, arg, i);
 		if(i === -1) break;
@@ -986,20 +1023,19 @@ Arrays.indicesOf = function indicesOf(list, arg, from = 0) {
 		i += 1;
 	} while(i !== -1);
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {ArrayLike<T>} ngram
  * @param {uint} [from]
  * @returns {uint[]}
  */
-Arrays.indicesOfNgram = function indicesOfNgram(list, ngram, from = 0) {
+export function indicesOfNgram<T, U extends T>(list: List<T>, ngram: List<U>, from = 0): uint[] {
 	tc.expectArrayLike(list);
 	tc.expectNonEmptyArrayLike(ngram);
 	tc.expectPositiveInteger(from);
-	const rv = [];
+	const rv = [] as index[];
 	const element = ngram[0];
 	const to = list.length - ngram.length + 1;
 	// eslint-disable-next-line no-labels
@@ -1013,39 +1049,36 @@ Arrays.indicesOfNgram = function indicesOfNgram(list, ngram, from = 0) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {MutableArrayLike<T>} list
  * @param {T} arg
  * @param {uint} index
  */
-Arrays.insertAt = function insertAt(list, arg, index) {
+export function insertAt<T>(list: MutableArrayLike<T>, arg: any, index: index) {
 	tc.expectArrayLike(list);
 	tc.expectPositiveInteger(index);
 	if(index >= list.length) list[index] = arg;
-	else splice(list, index, 0, arg);
-};
+	else _splice(list, index, 0, arg);
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {ArrayLike<T>} listToInsert
  * @param {uint} index
  */
-Arrays.insertSliceAt = function insertSliceAt(list, listToInsert, index) {
+export function insertSliceAt<T>(list: List<T>, listToInsert: List<T>, index: index) {
 	tc.expectArrayLike(list);
 	tc.expectPositiveInteger(index);
-	splice(list, index, 0, ...slice(listToInsert));
-};
+	_splice(list, index, 0, ..._slice(listToInsert));
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @returns {boolean}
  */
-Arrays.isClean = function isClean(list) {
+export function isClean<T>(list: List<T>): boolean {
 	tc.expectArrayLike(list);
 	if(typeof list === "string") return true;
 	const names = Arrays.getOwnPropertyNames(list);
@@ -1058,16 +1091,15 @@ Arrays.isClean = function isClean(list) {
 		&& !descriptor.configurable
 		&& !descriptor.enumerable
 	);
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @returns {boolean}
  */
-Arrays.isUnique = function isUnique(list) {
-	return new Set(slice(list)).size === list.length;
-};
+export function isUnique<T>(list: List<T>): boolean {
+	return new Set(_slice(list)).size === list.length;
+}
 
 /**
  * @template T, U, V
@@ -1077,19 +1109,24 @@ Arrays.isUnique = function isUnique(list) {
  * @param {*} [thisArg]
  * @returns {V[]}
  */
-Arrays.map2 = function map2(list, other, binaryFunction, thisArg = undefined) {
+export function map2<T, U, V>(
+	list: List<T>,
+	other: List<U>,
+	binaryFunction: (element: T, other: U) => V,
+	thisArg?: any
+): V[] {
 	tc.expectArrayLike(list);
 	tc.expectArrayLike(other);
 	tc.expectFunction(binaryFunction);
-	const rv = [];
 	const length = Math.max(list.length, other.length);
+	const rv = new Array(length);
 	for(let i = 0; i < length; i++) {
 		if(i in list && i in other) {
 			rv[i] = call(binaryFunction, thisArg, list[i], other[i]);
 		}
 	}
 	return rv;
-};
+}
 
 /**
  * Like the native 'Math.max()' function, but without quirks:
@@ -1104,7 +1141,7 @@ Arrays.map2 = function map2(list, other, binaryFunction, thisArg = undefined) {
  * @param {ArrayLike<number>} list
  * @returns {number}
  */
-Arrays.max = function max(list) {
+export function max(list: List<number>): number {
 	tc.expectNonEmptyArrayLike(list);
 	// Don't call 'tc.expectNumbers()' here.
 	let rv = list[0];
@@ -1116,15 +1153,17 @@ Arrays.max = function max(list) {
 		if(element > rv) rv = element;
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {PropertyKey} propertyKey
  * @returns {T}
  */
-Arrays.maxBy = function maxBy(list, propertyKey) {
+export function maxBy<T extends any[] & {[key: string]: number}, K extends NumberPropertyKeys<T>>(
+	list: List<T>,
+	propertyKey: K
+): T {
 	tc.expectNonEmptyArrayLike(list);
 	tc.expectPropertyKey(propertyKey);
 	let rv = list[0];
@@ -1150,19 +1189,21 @@ Arrays.maxBy = function maxBy(list, propertyKey) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {PropertyKey} propertyKey
  * @returns {number}
  */
-Arrays.maxPropertyValue = function maxPropertyValue(list, propertyKey) {
+export function maxPropertyValue<T extends any[] & {[key: string]: number}, K extends NumberPropertyKeys<T>>(
+	list: List<T>,
+	propertyKey: K
+): number {
 	tc.expectArrayLike(list);
 	tc.expectPropertyKey(propertyKey);
-	return Arrays.min(map(list, (element) => element[propertyKey]));
-};
+	return Arrays.min(_map(list, (element) => element[propertyKey]));
+}
 
 /**
  * Like the native 'Math.min()' function, but without quirks:
@@ -1177,7 +1218,7 @@ Arrays.maxPropertyValue = function maxPropertyValue(list, propertyKey) {
  * @param {ArrayLike<number>} list
  * @returns {number}
  */
-Arrays.min = function min(list) {
+export function min(list: List<number>): number {
 	tc.expectNonEmptyArrayLike(list);
 	// Don't call 'tc.expectNumbers()' here.
 	let rv = list[0];
@@ -1189,16 +1230,18 @@ Arrays.min = function min(list) {
 		if(element < rv) rv = element;
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {PropertyKey} propertyKey
  * @returns {T}
  * @example Arrays.minBy("Lorem ipsum sit amet".split(" "), "length");
  */
-Arrays.minBy = function minBy(list, propertyKey) {
+export function minBy<T extends any[] & {[key: string]: number}, K extends NumberPropertyKeys<T>>(
+	list: List<T>,
+	propertyKey: K
+): T {
 	tc.expectNonEmptyArrayLike(list);
 	tc.expectPropertyKey(propertyKey);
 	let rv = list[0];
@@ -1224,78 +1267,82 @@ Arrays.minBy = function minBy(list, propertyKey) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {PropertyKey} propertyKey
  * @returns {number}
  */
-Arrays.minPropertyValue = function minPropertyValue(list, propertyKey) {
+export function minPropertyValue<T, K extends NumberPropertyKeys<T>>(
+	list: List<T>,
+	propertyKey: K
+): number {
 	tc.expectArrayLike(list);
 	tc.expectPropertyKey(propertyKey);
-	return Arrays.min(map(list, (element) => element[propertyKey]));
-};
+	try {
+		return Arrays.min(_map(list, (element) => (<unknown>element[propertyKey]) as number));
+	} catch (error) {
+		throw error;
+	}
+}
 
 /**
  * @param {ArrayLike<*>} list
  * @param {PropertyKey} propertyKey
  * @returns {any[]}
  */
-Arrays.pluck = function pluck(list, propertyKey) {
+export function pluck<T, K extends keyof T>(
+	list: List<T>,
+	propertyKey: K
+): T[K][] {
 	tc.expectArrayLike(list);
 	tc.expectPropertyKey(propertyKey);
-	// @ts-ignore
-	return map(list, (element) => element[propertyKey]);
-};
+	return _map(list, (element) => element[propertyKey]);
+}
 
 /**
  * Removes the first occurence of the given value.
  *
- * @template T
  * @param {ArrayLike<T>} list
  * @param {T} arg
  */
-Arrays.remove = function remove(list, arg) {
+export function remove<T>(list: List<T>, arg: any) {
 	tc.expectArrayLike(list);
 	const index = Array.prototype.indexOf.call(list, arg);
 	if(index === -1) return;
-	splice(list, index, 1);
-};
+	_splice(list, index, 1);
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {uint} index
  */
-Arrays.removeByIndex = function removeByIndex(list, index) {
+export function removeByIndex<T>(list: List<T>, index: index) {
 	tc.expectArrayLike(list);
-	splice(list, index, 1);
-};
+	_splice(list, index, 1);
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {uint} i1
  * @param {uint} i2
  */
-Arrays.removeSlice = function removeSlice(list, i1, i2) {
+export function removeSlice<T>(list: List<T>, i1: int, i2: int) {
 	tc.expectArrayLike(list);
-	if(Array.isArray(list)) splice(list, i1, i2 - i1);
+	if(Array.isArray(list)) _splice(list, i1, i2 - i1);
 	else throw new TypeError("Not implemented.");
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {uint} nTimes
  * @returns {T[]}
  */
-Arrays.repeat = function repeat(list, nTimes) {
+export function repeat<T>(list: List<T>, nTimes: uint): T[] {
 	tc.expectArrayLike(list);
 	tc.expectPositiveInteger(nTimes);
-	const rv = [];
+	const rv = new Array();
 	let n = nTimes;
 	while(n--) {
 		for(let i = 0; i < list.length; i++) {
@@ -1303,36 +1350,34 @@ Arrays.repeat = function repeat(list, nTimes) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
  * Replace any occurence of 'element' with 'replacement'.
  *
- * @template T
  * @param {ArrayLike<T>} list
  * @param {T} element
  * @param {T} replacement
  * @returns {T[]}
  */
-Arrays.replace = function replace(list, element, replacement) {
+export function replace<T>(list: List<T>, element: T, replacement: T): T[] {
 	tc.expectArrayLike(list);
-	const rv = slice(list);
+	const rv = _slice(list);
 	for(let i = 0; i < list.length; i++) {
 		if(list[i] === element) rv[i] = replacement;
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {ArrayLike<T>} ngram
  * @returns {ArrayLike<T>}
  */
-Arrays.replaceNgram = function replaceNgram(list, ngram) {
+export function replaceNgram<T>(list: List<T>, ngram: List<T>): List<T> {
 	tc.expectArrayLike(list);
 	tc.expectArrayLike(ngram);
-	const rv = slice(list);
+	const rv = _slice(list);
 	const indices = Arrays.indicesOfNgram(list, ngram);
 	for(const index of indices) {
 		for(let j = 0; j < ngram.length; j++) {
@@ -1340,14 +1385,14 @@ Arrays.replaceNgram = function replaceNgram(list, ngram) {
 		}
 	}
 	return rv;
-};
+}
 
 /**
  * @param {ArrayLike<*>} list
  * @param {ArrayLike<*>} otherList
  * @returns {boolean}
  */
-Arrays.shallowEquals = function shallowEquals(list, otherList) {
+export function shallowEquals<T, U extends T>(list: List<T>, otherList: List<U>): boolean {
 	tc.expectArrayLike(list);
 	tc.expectArrayLike(otherList);
 	if(list === otherList) return true;
@@ -1356,16 +1401,15 @@ Arrays.shallowEquals = function shallowEquals(list, otherList) {
 		if(list[i] !== otherList[i]) return false;
 	}
 	return true;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @returns {T[]}
  */
-Arrays.shuffle = function shuffle(list) {
+export function shuffle<T>(list: List<T>): typeof list {
 	tc.expectArrayLike(list);
-	const rv = [];
+	const rv = new Array(list.length);
 	for(let i = 0; i < list.length; i++) {
 		const n = i + Math.floor((list.length - i) * Math.random());
 		const element = rv[i];
@@ -1381,16 +1425,15 @@ Arrays.shuffle = function shuffle(list) {
 		);
 	}
 	return rv;
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {uint} [from=0]
  * @param {uint} [to]
  * @returns {T[]}
  */
-Arrays.slice = function slice(list, from = 0, to = undefined) {
+export function slice<T>(list: List<T>, from: int = 0, to?: int): T[] {
 	tc.expectArrayLike(list);
 	tc.expectInteger(from);
 	if(Math.abs(from) > list.length) {
@@ -1404,105 +1447,99 @@ Arrays.slice = function slice(list, from = 0, to = undefined) {
 		throw new RangeError("argument 'to' is greater than 'list.length'.");
 	}
 	return Array.prototype.slice.call(list, from, to);
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {string} propertyKey
  * @returns {ArrayLike<T>}
  */
-Arrays.sortBy = function sortBy(list, propertyKey) {
+export function sortBy<T, K extends keyof T>(list: List<T>, propertyKey: K): typeof list {
 	tc.expectArrayLike(list);
 	tc.expectPropertyKey(propertyKey);
-	return sort(list, (a, b) => (a[propertyKey] >= b[propertyKey] ? 1 : -1));
-};
+	return _sort(list, (a, b) => (a[propertyKey] >= b[propertyKey] ? 1 : -1));
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {Function} f
  * @returns {ArrayLike<T>}
  */
-Arrays.sortWith = function sortWith(list, f) {
+export function sortWith<T>(list: List<T>, f: (element: T) => number): typeof list {
 	tc.expectArrayLike(list);
 	tc.expectFunction(f);
-	return sort(list, (a, b) => (f(a) >= f(b) ? 1 : -1));
-};
+	return _sort(list, (a, b) => (f(a) >= f(b) ? 1 : -1));
+}
 
 /**
  * @param {ArrayLike<number>} list
  * @returns {number}
  * @note If the argument is empty, then 0 will be returned.
  */
-Arrays.sum = function sum(list) {
+export function sum(list: List<number>): number {
 	tc.expectNumbers(list);
-	// @ts-ignore
-	return reduce(list, (acc, element) => acc + element, 0);
-};
+	return _reduce(list, (acc, element) => acc + element, 0);
+}
 
 /**
  * @param {ArrayLike<object>} list
  * @param {PropertyKey} propertyKey
  * @returns {number}
- * @note If the argument is empty, then 0 will be returned.
+ * @note If the given array-like is empty, then 0 will be returned.
  */
-Arrays.sumBy = function sum(list, propertyKey) {
+export function sumBy(list: List<{[key: number]: number}>, propertyKey: index): number | never;
+export function sumBy(list: List<{[key: string]: number}>, propertyKey: string): number | never;
+export function sumBy(list: List<any>, propertyKey: PropertyKey): number | never {
 	tc.expectNonPrimitives(list);
 	tc.expectPropertyKey(propertyKey);
-	// @ts-ignore
-	return reduce(
+	return _reduce(
 		list,
 		(acc, element) => {
-			tc.expectNumber(element[propertyKey]);
-			return acc + element[propertyKey];
+			if(typeof element[propertyKey] === "number") {
+				return acc + element[propertyKey];
+			}
+			throw new TypeError("element[propertyKey] is not a number");
 		},
 		0
 	);
-};
+}
 
 /**
- * @template T
  * @param {ArrayLike<T>} list
  * @param {function(T): number} fn
  * @returns {number}
  * @note If the argument is empty, then 0 will be returned.
  */
-Arrays.sumWith = function sumWith(list, fn) {
+export function sumWith<T>(list: List<T>, fn: (element: T) => number): number {
 	tc.expectArrayLike(list);
 	tc.expectFunction(fn);
-	// @ts-ignore
-	return reduce(list, (acc, element) => acc + fn(element), 0);
-};
+	return _reduce(list, (acc: number, element: T) => acc + fn(element), 0);
+}
 
 /**
- * @template T
  * @param {MutableArrayLike<T>} list
  * @param {uint} i1
  * @param {uint} i2
- * @returns {ArrayLike<T>}
  */
-Arrays.swap = function swap(list, i1, i2) {
+export function swap<T>(list: MutableArrayLike<T>, i1: index, i2: index) {
 	tc.expectArrayLike(list);
 	const element = list[i1];
 	list[i1] = list[i2];
 	list[i2] = element;
-	return list;
-};
+}
 
 /**
- * @template T
  * @param {...ArrayLike<T>} lists
  * @returns {(T[][] | never[])}
  */
-Arrays.zip = function zip(...lists) {
+export function zip<T>(...lists: List<T>[]): (T[][] | never[]) {
 	tc.expectArrayLikes(lists);
-	const minLength = Arrays.minPropertyValue(lists, "length");
-	const rv = [];
+	const minLength = Arrays.minPropertyValue(lists, "length") as number;
+	const rv = new Array(minLength);
 	for(let i = 0; i < minLength; i++) {
-		rv[i] = map(lists, (list) => list[i]);
+		rv[i] = _map(lists, (list) => list[i]);
 	}
 	return rv;
-};
+}
 
 export default Arrays;
