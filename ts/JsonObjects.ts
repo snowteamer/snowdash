@@ -24,7 +24,7 @@
  * @typedef {number} uint
  */
 
-import * as tc from "tc";
+import * as tc from "./tc";
 import Arrays from "./Arrays";
 
 const JsonObjects = {

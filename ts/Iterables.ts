@@ -6,7 +6,7 @@
  * @typedef {number} uint
  */
 
-import * as tc from "tc";
+import * as tc from "./tc";
 import Iterators from "./Iterators";
 
 const Iterables = {

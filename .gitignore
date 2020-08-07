@@ -5,6 +5,7 @@
 # Dist
 cjs
 esm
+types
 
 # Logs
 logs

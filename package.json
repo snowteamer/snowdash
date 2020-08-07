@@ -6,7 +6,7 @@
 	"bugs": {
 		"url": "https://github.com/snowteamer/snowdash/issues"
 	},
-	"description": "Static utilities for EcmaScript values",
+	"description": "Static utilities for JavaScript",
 	"devDependencies": {
 		"eslint": "^7.1.0",
 		"eslint-plugin-jsdoc": "^24.0.0",
@@ -17,8 +17,8 @@
 		"node": ">=14"
 	},
 	"license": "AGPL-3.0",
-	"main": "cjs/snowdash.js",
-	"module": "esm/snowdash.js",
+	"main": "cjs/index.js",
+	"module": "esm/index.js",
 	"name": "snowdash",
 	"repository": {
 		"type": "git",
@@ -26,7 +26,11 @@
 	},
 	"scripts": {
 		"lint": "eslint --report-unused-disable-directives ./",
-		"test": "node test/index.js"
+		"build:all": "tsc -b tsconfig.cjs.json tsconfig.esm.json tsconfig.types.json",
+		"build:cjs": "tsc -p tsconfig.cjs.json",
+		"build:esm": "tsc -p tsconfig.esm.json",
+		"build:types": "tsc -p tsconfig.types.json",
+		"test": "mocha test/*"
 	},
-	"typings": "esm/snowdash.d.ts"
+	"types": "types"
 }

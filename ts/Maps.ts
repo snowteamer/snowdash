@@ -15,7 +15,7 @@ type MapCallback<K, V> = (value: V, key: K, map: Map<K, V>) => void;
 type MapPredicate<K, V> = (value: V, key: K, map: Map<K, V>) => boolean; 
 
 
-import * as tc from "tc";
+import * as tc from "./tc";
 
 
 const call = Function.prototype.call.bind(Function.prototype.call);

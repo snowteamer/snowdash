@@ -1,7 +1,7 @@
 /**
  * @file RegExps.ts - Utilities for RegExp objects.
  */
-import * as tc from "tc";
+import * as tc from "./tc";
 
 const RegExps = {
 	alpha: /[a-zàáâãäçèéêëìíîïñòóôöùúûüýÿ]/i,
