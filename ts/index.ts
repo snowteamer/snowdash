@@ -1,5 +1,9 @@
 /**
- * @file index.js - Static utilities for EcmaScript language types.
+ * Snowdash - Static utilities for core EcmaScript language types.
+ *
+ * Written in TypeScript.
+ *
+ * @file index.js
  *
  * @author snowteamer <https://github.com/snowteamer>
  *
@@ -17,4 +21,4 @@ export * as Objects from "./Objects";
 export * as RegExps from "./RegExps";
 export * as Sets from "./Sets";
 export * as Strings from "./Strings";
-
+export * as tc from "./tc";
