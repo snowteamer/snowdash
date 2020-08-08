@@ -429,6 +429,34 @@ export function isObject(arg: any): boolean {
 }
 
 /**
+ * Checks if a value is a plain object.
+ *
+ * - A given value is not a plain object if it has a [Symbol.toStringTag]
+ * property.
+ * - If you define a '[Symbol.toStringTag]' property on a plain object, it is no
+ * longer a plain object.
+ * - The prototype of a plain object is either 'null', 'Object.prototype',
+ * or another plain object.
+ *
+ * @param {any} arg
+ * @example isPlainObject({}); // -> true
+ * @example isPlainObject(Object.create(null)); // -> true
+ * @example isPlainObject(Object.create({})); // -> true
+ * @example isPlainObject([]); // -> false
+ */
+export function isPlainObject(arg: any): boolean {
+	if(typeof arg !== "object" || arg === null) return false;
+	if(Object.prototype.toString.call(arg) !== "[object Object]") return false;
+	if(areSymbolsSupported && Symbol.toStringTag in arg) return false;
+	const proto = Reflect.getPrototypeOf(arg);
+	if(proto === null) return true;
+	if(proto === Object.prototype) return true;
+	// This is safe from recursion since cyclic prototype chains are impossible.
+	if(isPlainObject(proto)) return true;
+	return false;
+}
+
+/**
  * @param {any} arg
  */
 export function isPositiveBigInt(arg: any): boolean {
@@ -692,6 +720,7 @@ const descriptionsByTypeName: Record<string, string> = {
 	'NonPrimitive': "a non-primitive value",
 	'Number': "a number",
 	'Object': "a non-primitive value",
+	'PlainObject': "a plain object",
 	'PositiveBigInt': "a positive BigInt integer",
 	'PositiveInteger': "a positive integer",
 	'PositiveNumber': "a positive number",
@@ -746,6 +775,7 @@ const predicatesByName: Record<string, Predicate> = {
 	isNullOrUndefined,
 	isNumber,
 	isObject,
+	isPlainObject,
 	isPositiveBigInt,
 	isPositiveInteger,
 	isPositiveNumber,
@@ -865,6 +895,7 @@ export const expectNonNullable = makeExpectation(isNonNullable);
 export const expectNonPrimitive = makeExpectation(isNonPrimitive);
 export const expectNumber = makeExpectation(isNumber);
 export const expectObject = makeExpectation(isObject);
+export const expectPlainObject = makeExpectation(isPlainObject);
 export const expectPositiveInteger = makeExpectation(isPositiveInteger);
 export const expectPositiveNumber = makeExpectation(isPositiveNumber);
 export const expectPrimitive = makeExpectation(isPrimitive);
@@ -907,6 +938,7 @@ export const expectNonNullables = makePluralExpectation(isNonNullable);
 export const expectNonPrimitives = makePluralExpectation(isNonPrimitive);
 export const expectNumbers = makePluralExpectation(isNumber);
 export const expectObjects = makePluralExpectation(isObject);
+export const expectPlainObjects = makePluralExpectation(isPlainObject);
 export const expectPositiveIntegers = makePluralExpectation(isPositiveInteger);
 export const expectPositiveNumbers = makePluralExpectation(isPositiveNumber);
 export const expectPrimitives = makePluralExpectation(isPrimitive);
