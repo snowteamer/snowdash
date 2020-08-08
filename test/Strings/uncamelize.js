@@ -1,4 +1,6 @@
 /* eslint-env node */
+"use strict";
+
 const {uncamelize} = require("../../cjs/Strings");
 
 const testCases = {

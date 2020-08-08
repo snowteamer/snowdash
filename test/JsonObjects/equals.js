@@ -1,4 +1,6 @@
 /* eslint-env node */
+"use strict";
+
 const {equals} = require("../../cjs/JsonObjects");
 
 const testCases = [
