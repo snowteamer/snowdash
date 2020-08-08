@@ -133,10 +133,6 @@ export function assert(arg: boolean, message = ""): void | never {
 	if(arg !== true) throwNewAssertionError(message);
 }
 
-// ====== Default export ====== //
-
-const tc: Record<string, any> = {};
-
 // ====== Predicates ====== //
 
 /**
@@ -279,7 +275,7 @@ export function isFunction(arg: any): boolean {
  */
 export function isImmutable(arg: any): boolean {
 	return (
-		tc.isPrimitive(arg)
+		isPrimitive(arg)
 		|| (Object.isSealed(arg) && Object.isFrozen(arg))
 	);
 }
@@ -317,14 +313,14 @@ export function isMap(arg: any): boolean {
  * @param {any} arg
  */
 export function isMutable(arg: any): boolean {
-	return !tc.isImmutable(arg);
+	return !isImmutable(arg);
 }
 
 /**
  * @param {any} arg
  */
 export function isMutableArrayLikeObject(arg: any): boolean {
-	return tc.isArrayLikeObject(arg) && !tc.isImmutable(arg);
+	return isArrayLikeObject(arg) && !isImmutable(arg);
 }
 
 /**
@@ -372,7 +368,7 @@ export function isNonEmptyArray(arg: any): boolean {
  * @param {any} arg
  */
 export function isNonEmptyArrayLike(arg: any): boolean {
-	return tc.isArrayLike(arg) && arg.length > 0;
+	return isArrayLike(arg) && arg.length > 0;
 }
 
 /**
@@ -407,7 +403,7 @@ export function isNullOrUndefined(arg: any): boolean {
  * @param {any} arg
  */
 export function isNonPrimitive(arg: any): boolean {
-	return !tc.isPrimitive(arg);
+	return !isPrimitive(arg);
 }
 
 /**
@@ -497,7 +493,7 @@ export function isPrimitive(arg: any): boolean {
  * @param {any} arg
  */
 export function isPropertyDescriptor(arg: any): boolean {
-	if(tc.isPrimitive(arg)) return false;
+	if(isPrimitive(arg)) return false;
 	if("value" in arg && !("get" in arg || "set" in arg)) return true;
 	if(!("value" in arg) && ("get" in arg || "set" in arg)) return true;
 	return false;
