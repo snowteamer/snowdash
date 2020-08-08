@@ -25,7 +25,6 @@
  */
 
 import * as tc from "./tc";
-import Arrays from "./Arrays";
 
 const JsonObjects = {
 	assoc,
@@ -35,9 +34,9 @@ const JsonObjects = {
 	copy,
 	count,
 	cram,
-	deepEquals,
 	deleteByPath,
 	entries,
+	equals,
 	every,
 	filterInPlace,
 	forEach,
@@ -232,45 +231,72 @@ export function deleteByPath(object, keys) {
 /**
  * Checks whether two JSON objects are deeply equal.
  *
- * - Properties whose value is 'undefined' are allowed but ignored.
+ * - If a property value is 'undefined', no error will be thrown although it is
+ *   not a valid JSON value, but 'false' will be returned unless the
+ *   corresponding property of the other object is either missing or
+ *   also 'undefined'.
+ *
+ * - If a property value is a function, 'false' will be returned
+ *   unless the corresponding property value of the other object is identical
+ *   according to 'Object.is()'.
  *
  * @param {object} object
  * @param {object} otherObject
+ * @param {{allowUndefined: boolean}}
  * @returns {boolean}
  */
-export function deepEquals(object, otherObject) {
+export function equals(object, otherObject, {allowUndefined = false} = {}) {
 	tc.expectNonPrimitive(object);
 	tc.expectNonPrimitive(otherObject);
 	if(object === otherObject) return true;
-	if(typeof object !== "object" || typeof otherObject !== "object") {
-		return false;
-	}
-	if(object === null || otherObject === null) return false;
+
 	if(Array.isArray(object)) {
+		if(!Array.isArray(otherObject)) return false;
 		const array = object;
 		const otherArray = otherObject;
-		if(array.length !== otherArray.length) return false;
+		if(array.length !== otherArray.length) {
+			if(!allowUndefined) return false;
+			// Use plain for-loops here since it is not uncommon for sparse
+			//   arrays to be of considerable size.
+			if(array.length > otherArray.length) {
+				for(let i = otherArray.length; i < array.length; i++) {
+					if(array[i] !== undefined) return false;
+				}
+			} else {
+				for(let i = array.length; i < otherArray.length; i++) {
+					if(otherArray[i] !== undefined) return false;
+				}
+			}
+		}
+		const copiedOptions = {allowUndefined};
 		for(let i = 0; i < array.length; i++) {
 			const element = array[i];
 			const otherElement = otherArray[i];
 			if(tc.isPrimitive(element)) {
 				if(!Object.is(element, otherElement)) return false;
 			} else {
-				if(!deepEquals(element, otherElement)) return false;
+				if(!equals(element, otherElement, copiedOptions)) return false;
 			}
 		}
 		return true;
 	}
+	// If 'object' is neither a primitive nor an array, then it must be a plain
+	//   object, otherwise it is not a valid JSON value.
+	tc.expectPlainObject(object);
+	if(Array.isArray(otherObject)) return false;
+	tc.expectPlainObject(otherObject);
+
+	const copiedOptions = {allowUndefined};
 	for(const [key, value] of Object.entries(object)) {
-		if(value === undefined) continue;
 		if(tc.isPrimitive(value)) {
+			if(allowUndefined && value === undefined) continue;
 			if(!Object.is(value, otherObject[key])) return false;
 		} else {
-			if(!deepEquals(value, otherObject[key])) return false;
+			if(!equals(value, otherObject[key], copiedOptions)) return false;
 		}
 	}
 	for(const [key, value] of Object.entries(otherObject)) {
-		if(value === undefined) continue;
+		if(allowUndefined && value === undefined) continue;
 		if(!hasOwnProperty(object, key)) return false;
 	}
 	return true;
@@ -558,38 +584,6 @@ export function setByPath(object, keys, value) {
 	}
 	parent[keys[keys.length - 1]] = value;
 	return value;
-}
-
-/**
- * @param {object} object
- * @param {object} otherObject
- * @returns {boolean}
- */
-export function shallowEquals(object, otherObject) {
-	tc.expectNonPrimitive(object);
-	tc.expectNonPrimitive(otherObject);
-	if(object === otherObject) return true;
-	if(typeof object !== "object" || typeof otherObject !== "object") {
-		return false;
-	}
-	if(object === null || otherObject === null) {
-		return false;
-	}
-	if(Array.isArray(object)) {
-		if(!Array.isArray(otherObject)) return false;
-		return Arrays.shallowEquals(object, otherObject);
-	}
-	for(const key in object) if(hasOwnProperty(object, key)) {
-		if(object[key] !== otherObject[key]) {
-			return false;
-		}
-	}
-	for(const key in otherObject) if(hasOwnProperty(otherObject, key)) {
-		if(otherObject[key] !== object[key]) {
-			return false;
-		}
-	}
-	return true;
 }
 
 /**
