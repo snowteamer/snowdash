@@ -19,7 +19,7 @@
  * @typedef {function(*): boolean} Predicate
  */
 
-import * as tc from "./tc";
+import * as tc from "./tc.js";
 
 const Objects = {
 	assign,

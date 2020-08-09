@@ -10,15 +10,15 @@
  * @license AGPL-3.0
  */
 
-export * as Arrays from "./Arrays";
-export * as Functions from "./Functions";
-export * as Iterables from "./Iterables";
-export * as Iterators from "./Iterators";
-export * as JsonObjects from "./JsonObjects";
-export * as Maps from "./Maps";
-export * as Numbers from "./Numbers";
-export * as Objects from "./Objects";
-export * as RegExps from "./RegExps";
-export * as Sets from "./Sets";
-export * as Strings from "./Strings";
-export * as tc from "./tc";
+export * as Arrays from "./Arrays.js";
+export * as Functions from "./Functions.js";
+export * as Iterables from "./Iterables.js";
+export * as Iterators from "./Iterators.js";
+export * as JsonObjects from "./JsonObjects.js";
+export * as Maps from "./Maps.js";
+export * as Numbers from "./Numbers.js";
+export * as Objects from "./Objects.js";
+export * as RegExps from "./RegExps.js";
+export * as Sets from "./Sets.js";
+export * as Strings from "./Strings.js";
+export * as tc from "./tc.js";

@@ -11,7 +11,7 @@
 type int = number;
 type uint = number;
  */
-import * as tc from "./tc";
+import * as tc from "./tc.js";
 
 
 /**

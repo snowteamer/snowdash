@@ -6,8 +6,8 @@
  * @typedef {number} uint
  */
 
-import * as tc from "./tc";
-import Iterators from "./Iterators";
+import * as tc from "./tc.js";
+import Iterators from "./Iterators.js";
 
 const Iterables = {
 	bigrams,

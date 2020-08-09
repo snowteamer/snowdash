@@ -4,8 +4,8 @@
 type uint = number;
 
 
-import * as tc from "./tc";
-import RegExps from "./RegExps";
+import * as tc from "./tc.js";
+import RegExps from "./RegExps.js";
 
 const Strings = {
 	countOccurencesOf,
