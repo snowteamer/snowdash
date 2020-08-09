@@ -21,27 +21,7 @@
 
 import * as tc from "./tc.js";
 
-const Objects = {
-	assign,
-	assignNoNew,
-	clone,
-	copy,
-	copyAssign,
-	createNullObject,
-	getOwnPropertyDescriptorsByName,
-	getPropertyValueChain,
-	getPropertyDescriptor,
-	getSpecies,
-	getTag,
-	hasAccessorProperty,
-	hasConfigurableProperty,
-	hasEnumerableProperty,
-	hasDataProperty,
-	hasOwnAccessorProperty,
-	hasOwnDataProperty,
-	iterPropertyValueChain,
-	[Symbol.toStringTag]: "snowdash.Objects"
-};
+export const [Symbol.toStringTag] = "snowdash.Objects";
 
 /* eslint-disable no-new-object, no-new-wrappers, unicorn/new-for-builtins */
 
@@ -210,7 +190,7 @@ export function clone(
 		const proto = Reflect.getPrototypeOf(node);
 		setOfVisitedPrototypes.add(proto);
 
-		const tag = Objects.getTag(node);
+		const tag = getTag(node);
 		const factory = factoriesByTag[tag];
 		const rv = (factory ? factory(node) : Object.create(proto));
 
@@ -306,7 +286,7 @@ export function copy(
 			descriptor.writable = true;
 		}
 	}
-	const tag = Objects.getTag(object);
+	const tag = getTag(object);
 	const factory = factoriesByTag[tag];
 	const rv = (factory ? factory(object) : Object.create(proto));
 	if(Object.getPrototypeOf(rv) !== proto) {
@@ -327,7 +307,7 @@ export function copy(
 export function copyAssign(object, ...args) {
 	tc.expectNonPrimitive(object);
 	tc.expectNonNullables(args);
-	return Object.assign(Objects.copy(object), ...args);
+	return Object.assign(copy(object), ...args);
 };
 
 /**
@@ -409,7 +389,7 @@ export function defineAliasProperty(object, options = {alias: "", original: ""})
 	if(alias === original) {
 		throw new Error("Expected distinct options 'alias' and 'original'.");
 	}
-	const enumerable = Objects.hasEnumerableProperty(object, original);
+	const enumerable = hasEnumerableProperty(object, original);
 	Object.defineProperty(object, alias, {
 		"get"() {
 			return this[original];
@@ -579,7 +559,7 @@ export function getPropertyDescriptor(object, key) {
  * @returns {Array<*>}
  */
 export function getPropertyValueChain(object, key) {
-	return [...Objects.iterPropertyValueChain(object, key)];
+	return [...iterPropertyValueChain(object, key)];
 }
 
 /**
@@ -620,7 +600,7 @@ export function hasAccessorProperty(object, key) {
 		tc.expectNonPrimitive(object);
 		tc.expectPropertyKey(key);
 		if(!(key in object)) return false;
-		const descriptor = Objects.getPropertyDescriptor(object, key);
+		const descriptor = getPropertyDescriptor(object, key);
 		if(descriptor === null || descriptor === undefined) return false;
 		return "get" in descriptor || "set" in descriptor;
 	};
@@ -649,7 +629,7 @@ export function hasDataProperty(object, key) {
 	tc.expectNonPrimitive(object);
 	tc.expectPropertyKey(key);
 	if(!(key in object)) return false;
-	const descriptor = Objects.getPropertyDescriptor(object, key);
+	const descriptor = getPropertyDescriptor(object, key);
 	if(descriptor === null || descriptor === undefined) return false;
 	return "value" in descriptor;
 }
@@ -759,5 +739,3 @@ export function unassign(object, ...args) {
 	}
 	return object;
 }
-
-export default Objects;

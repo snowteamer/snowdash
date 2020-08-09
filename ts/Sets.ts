@@ -12,33 +12,7 @@ import Arrays from "./Arrays.js";
 /**
  * @module snowdash/Sets
  */
-const Sets = {
-	[Symbol.toStringTag]: "snowdash.Sets",
-	addAll,
-	areDisjoint,
-	deleteAll,
-	difference,
-	equals,
-	extend,
-	from,
-	fromKeysOf,
-	fromValuesOf,
-	hasAll,
-	intersection,
-	isEmpty,
-	isSubsetOf,
-	isSupersetOf,
-	maxBy,
-	maxPropertyValue,
-	maxWith,
-	minBy,
-	minPropertyValue,
-	minWith,
-	sortByKeys,
-	symmetricDifference,
-	unextend,
-	union,
-};
+
 
 
 const call = Function.prototype.call.bind(Function.prototype.call);
@@ -210,7 +184,7 @@ export function addAll(set, args) {
 export function areDisjoint(set, ...otherSets) {
 	tc.expectSet(set);
 	tc.expectSets(otherSets);
-	return Sets.intersection(set, ...otherSets).size === 0;
+	return intersection(set, ...otherSets).size === 0;
 }
 
 /**
@@ -265,7 +239,7 @@ export function equals(set, otherSet) {
 	tc.expectSet(set);
 	tc.expectSet(otherSet);
 	if(set.size !== otherSet.size) return false;
-	return Sets.intersection(set, otherSet).size === set.size;
+	return intersection(set, otherSet).size === set.size;
 }
 
 /**
@@ -337,7 +311,7 @@ export function isSubsetOf(set, otherSet) {
 export function isSupersetOf(set, otherSet) {
 	tc.expectSet(set);
 	tc.expectSet(otherSet);
-	return Sets.isSubsetOf(otherSet, set);
+	return isSubsetOf(otherSet, set);
 }
 
 /**
@@ -535,5 +509,3 @@ export function union(...sets) {
 	}
 	return rv;
 }
-
-export default Sets;

@@ -7,38 +7,7 @@ type uint = number;
 import * as tc from "./tc.js";
 import RegExps from "./RegExps.js";
 
-const Strings = {
-	countOccurencesOf,
-	countRegExpMatches,
-	ellipsis,
-	equalsIgnoreCase,
-	escape,
-	isAlpha,
-	isAlphanumeric,
-	isDigit,
-	isLetter,
-	isLowerCase,
-	isNumericString,
-	isUpperCase,
-	isWhiteSpace,
-	padAfter,
-	padBefore,
-	repeat,
-	reverse,
-	splitCharacters,
-	splitLines,
-	startsWithRegExp,
-	swapCase,
-	toBase64,
-	toCamelCase,
-	toLowerCase,
-	toProperCase,
-	toSnakeCase,
-	toSpinalCase,
-	toUpperCase,
-	uncamelize,
-	[Symbol.toStringTag]: "snowdash.Strings",
-}
+export const [Symbol.toStringTag] = "snowdash.Strings";
 
 
 // Used by 'Strings.escape(s)'.
@@ -449,7 +418,7 @@ export function toSpinalCase(s: string): string {
  */
 export function toTitleCase(s: string): string {
 	tc.expectString(s);
-	return s.replace(/\b[A-Za-z]/g, (match) => Strings.toProperCase(match));
+	return s.replace(/\b[A-Za-z]/g, (match) => toProperCase(match));
 }
 
 /**
@@ -486,5 +455,3 @@ export function uncamelize(s: string): string {
 		.join(" ")
 	);
 }
-
-export default Strings;

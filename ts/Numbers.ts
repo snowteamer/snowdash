@@ -9,18 +9,7 @@ type uint = number;
 
 import * as tc from "./tc.js";
 
-const Numbers = {
-	fromBase,
-	binaryLength,
-	octalLength,
-	decimalLength,
-	hexadecimalLength,
-	isNumber,
-	isRegularNumber,
-	isSpecialNumber,
-	pad,
-	[Symbol.toStringTag]: "snowdash.Numbers",
-}
+export const [Symbol.toStringTag] = "snowdash.Numbers";
 
 
 /**
@@ -129,5 +118,3 @@ export function pad(number: number, numberOfCharacters: uint): string {
 	if(s.length >= numberOfCharacters) return s;
 	return "0".repeat(numberOfCharacters - s.length) + s;
 }
-
-export default Numbers;

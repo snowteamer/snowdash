@@ -17,30 +17,12 @@ import * as tc from "./tc.js";
 /**
  * @module snowdash/Functions
  */
-const Functions = {
-	cachesByFunction: new WeakMap(),
-	wrappedFunctionsByCache: new WeakMap(),
-	wrapperFunctionsByCache: new WeakMap(),
 
-	abstractMethod,
-	after,
-	apply,
-	before,
-	call,
-	complement,
-	getName,
-	isMemoized,
-	memoize,
-	memoizeMethod,
-	once,
-	partial,
-	repeat,
-	unmemoize,
-	unmemoizeMethod,
-	withArity,
-	withLimit,	
-	[Symbol.toStringTag]: "snowdash.Functions"
-}
+export const cachesByFunction = new WeakMap();
+export const wrappedFunctionsByCache = new WeakMap();
+export const wrapperFunctionsByCache = new WeakMap();
+
+export const [Symbol.toStringTag] = "snowdash.Functions";
 
 // const call = Function.prototype.call.bind(Function.prototype.call);
 
@@ -219,7 +201,7 @@ export function before(callback, nTimes) {
  * @returns {boolean}
  */
 export function isMemoized(fn) {
-	return Functions.cachesByFunction.has(fn);
+	return cachesByFunction.has(fn);
 };
 
 /**
@@ -230,7 +212,7 @@ export function isMemoized(fn) {
  */
 export function memoize(fn, options = {"hashFunction": JSON.stringify}) {
 	tc.expectFunction(fn);
-	if(Functions.isMemoized(fn)) {
+	if(isMemoized(fn)) {
 		throw new Error("The given function is already memoized.");
 	}
 	const hashFunction = options && options.hashFunction;
@@ -244,19 +226,19 @@ export function memoize(fn, options = {"hashFunction": JSON.stringify}) {
 	 */
 	const wrapper = function wrapper(this: any, ...args) {
 		if(wrapper.closed) {
-			return Functions.call(fn, this, ...args);
+			return call(fn, this, ...args);
 		}
 		const cacheKey = hashFunction(args);
 		if(!cache.has(cacheKey)) {
-			cache.set(cacheKey, Functions.call(fn, this, ...args));
+			cache.set(cacheKey, call(fn, this, ...args));
 		}
 		return cache.get(cacheKey);
 	};
 	wrapper.closed = false;
-	Functions.cachesByFunction.set(fn, cache);
-	Functions.cachesByFunction.set(wrapper, cache);
-	Functions.wrappedFunctionsByCache.set(cache, fn);
-	Functions.wrapperFunctionsByCache.set(cache, wrapper);
+	cachesByFunction.set(fn, cache);
+	cachesByFunction.set(wrapper, cache);
+	wrappedFunctionsByCache.set(cache, fn);
+	wrapperFunctionsByCache.set(cache, wrapper);
 	return wrapper;
 };
 
@@ -272,7 +254,7 @@ export function memoizeMethod(object, key) {
 	tc.expectNonPrimitive(object);
 	tc.expectString(key);
 	tc.expectFunction(object[key]);
-	object[key] = Functions.memoize(object[key]);
+	object[key] = memoize(object[key]);
 };
 
 /**
@@ -281,16 +263,16 @@ export function memoizeMethod(object, key) {
  */
 export function unmemoize(fn) {
 	tc.expectFunction(fn);
-	if(!Functions.isMemoized(fn)) {
+	if(!isMemoized(fn)) {
 		throw new Error("The given function is not a memoization wrapper.");
 	}
-	const cache = Functions.cachesByFunction.get(fn);
-	const wrapped = Functions.wrappedFunctionsByCache.get(cache);
-	const wrapper = Functions.wrapperFunctionsByCache.get(cache);
-	Functions.cachesByFunction.delete(wrapped);
-	Functions.cachesByFunction.delete(wrapper);
-	Functions.wrappedFunctionsByCache.delete(cache);
-	Functions.wrapperFunctionsByCache.delete(cache);
+	const cache = cachesByFunction.get(fn);
+	const wrapped = wrappedFunctionsByCache.get(cache);
+	const wrapper = wrapperFunctionsByCache.get(cache);
+	cachesByFunction.delete(wrapped);
+	cachesByFunction.delete(wrapper);
+	wrappedFunctionsByCache.delete(cache);
+	wrapperFunctionsByCache.delete(cache);
 	cache.clear();
 	wrapper.closed = true;
 	return wrapped;
@@ -307,7 +289,7 @@ export function unmemoize(fn) {
 export function unmemoizeMethod(object, key) {
 	tc.expectNonPrimitive(object);
 	tc.expectString(key);
-	object[key] = Functions.unmemoize(object[key]);
+	object[key] = unmemoize(object[key]);
 };
 
 // ===== end of section 'Memoization utilities' ===== //
@@ -320,7 +302,7 @@ export function complement(predicate) {
 	tc.expectFunction(predicate);
 	return function complementWrapper(...args) {
 		// @ts-ignore
-		return !Functions.apply(predicate, this, args);
+		return !apply(predicate, this, args);
 	};
 };
 
@@ -340,9 +322,9 @@ export function compose(...functions) {
 	return function composeWrapper(this: any, ...args) {
 		return functions.slice(0, -1).reduce(
 			// @ts-ignore
-			(acc, fn) => Functions.call(fn, this, acc),
+			(acc, fn) => call(fn, this, acc),
 			// @ts-ignore
-			Functions.call(
+			call(
 				functions[functions.length - 1],
 				this,
 				...args
@@ -359,7 +341,7 @@ export function compose(...functions) {
  */
 export function once(callback) {
 	tc.expectFunction(callback);
-	return Functions.withLimit(callback, 1);
+	return withLimit(callback, 1);
 };
 
 /**
@@ -378,7 +360,7 @@ export function repeat(f, nTimes) {
 		const rv = [];
 		for(let i = 0; i < nTimes; i++) {
 			// @ts-ignore
-			rv[i] = Functions.call(f, this, ...args);
+			rv[i] = call(f, this, ...args);
 		}
 		return rv;
 	};
@@ -397,7 +379,7 @@ export function partial(fn, ...args) {
 	const partialArguments = args;
 	return function partialWrapper(...args) {
 		// @ts-ignore
-		return Functions.call(fn, this, ...partialArguments, ...args);
+		return call(fn, this, ...partialArguments, ...args);
 	};
 };
 
@@ -411,7 +393,7 @@ export function withArity(f, arity) {
 	tc.expectPositiveInteger(arity);
 	return function withArityWrapper(...args) {
 		// @ts-ignore
-		return Functions.call(f, this, ...args.slice(0, arity));
+		return call(f, this, ...args.slice(0, arity));
 	};
 };
 
@@ -433,11 +415,9 @@ export function withLimit(f, nTimes) {
 	return function withLimitWrapper(...args) {
 		if(n === 0) return cache;
 		// @ts-ignore
-		const rv = Functions.call(f, this, ...args);
+		const rv = call(f, this, ...args);
 		--n;
 		if(n === 0) cache = rv;
 		return rv;
 	};
 };
-
-export default Functions;

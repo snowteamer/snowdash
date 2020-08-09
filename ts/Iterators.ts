@@ -12,14 +12,7 @@
 
 import * as tc from "./tc.js";
 
-const Iterators = {
-	drop,
-	dropWhile,
-	find,
-	fromIterable,
-	next,
-	[Symbol.toStringTag]: "snowdash.Iterators",
-};
+export const [Symbol.toStringTag] = "snowdash.Iterators";
 
 
 /**
@@ -89,5 +82,3 @@ export function next(iterator, defaultValue) {
 	}
 	return value;
 }
-
-export default Iterators;

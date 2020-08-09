@@ -9,24 +9,7 @@
 import * as tc from "./tc.js";
 import Iterators from "./Iterators.js";
 
-const Iterables = {
-	bigrams,
-	chunk,
-	filter,
-	fromFunction,
-	group,
-	groupWith,
-	map,
-	ngrams,
-	objectEntries,
-	objectKeys,
-	objectValues,
-	take,
-	takeWhile,
-	zip,
-	zipWith,
-	[Symbol.toStringTag]: "snowdash.Iterables"
-};
+export const [Symbol.toStringTag] = "snowdash.Iterables";
 
 const call = Function.prototype.call.bind(Function.prototype.call);
 
@@ -117,7 +100,7 @@ export function* filter(iterable, predicate, thisArg = undefined) {
  */
 export function* group(iterable) {
 	tc.expectIterable(iterable);
-	yield* Iterables.groupWith(iterable, (x) => x);
+	yield* groupWith(iterable, (x) => x);
 }
 
 /**
@@ -319,5 +302,3 @@ export function* zipWith<T, U>(fn: (...args: T[]) => U, ...iterables: Iterable<T
 		yield fn(...values);
 	}
 }
-
-export default Iterables;

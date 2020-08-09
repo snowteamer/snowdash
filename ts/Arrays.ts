@@ -80,78 +80,7 @@ type Predicate<T> = (arg: T) => boolean;
 import * as tc from "./tc.js";
 
 
-const Arrays = {
-	concat,
-	every,
-	filter,
-	fill,
-	find,
-	findIndex,
-	forEach,
-	indexOf,
-	map,
-	reduce,
-	shift,
-	unshift,
-	slice,
-	some,
-	sort,
-
-	add,
-	addAll,
-	chunk,
-	condense,
-	contains,
-	containsAll,
-	copy,
-	count,
-	countBigram,
-	countNgram,
-	countWith,
-	createArray2D,
-	createBigrams,
-	createCumulativeSums,
-	createDuplicateSet,
-	createFrequencyMap,
-	createIndexMap,
-	createIndexPairs,
-	createNgrams,
-	createPairs,
-	createPermutation,
-	createRange,
-	cross,
-	dedupe,	
-	drop,
-	dropWhile,
-	generateCombinations,
-	generateIndexCombinations,
-	generateIndexPermutations,
-	generatePermutations,
-	generateTuples,
-	getNeighborhood,
-	getNeighborhoodOfSlice,
-	getOwnPropertyNames,
-	group,
-	groupWith,
-	indicesOf,
-	indicesOfNgram,
-	insertAt,
-	isClean,
-	isUnique,
-	max,
-	maxBy,
-	maxPropertyValue,
-	min,
-	minBy,
-	minPropertyValue,
-	pluck,
-	shallowEquals,
-	sortBy,
-	sortWith,
-	swap,
-	zip,
-	[Symbol.toStringTag]: "snowdash.Arrays",
-}
+export const [Symbol.toStringTag] = "snowdash.Arrays";
 
 const call = Function.prototype.call.bind(Function.prototype.call);
 const _map: <T, U>(list: List<T>, mapfn: ArrayMappingFunction<T, U>) => U[] = (
@@ -779,7 +708,7 @@ export function* generateCombinations<T>(list: List<T>, k: uint): Generator<T[]>
 	tc.expectPositiveInteger(k);
 	tc.expectPositiveInteger(list.length - k);
 	const n = list.length;
-	for(const indices of Arrays.generateIndexCombinations(n, k)) {
+	for(const indices of generateIndexCombinations(n, k)) {
 		yield indices.map((i) => list[i]);
 	}
 }
@@ -796,7 +725,7 @@ export function* generateCombinations<T>(list: List<T>, k: uint): Generator<T[]>
 export function* generateIndexCombinations(n: uint, k: uint): Generator<index[]> {
 	tc.expectPositiveInteger(n);
 	tc.expectPositiveInteger(k);
-	const indices = Arrays.createRange(k);
+	const indices = createRange(k);
 	yield indices.slice() as index[];
 	if(!k || !n) return;
 	while(true) {
@@ -855,8 +784,8 @@ export function* generatePermutations<T>(list: List<T>): Generator<T[]> {
 		if(!n) yield perm.slice();
 		else for(let i = 0; i < n; i++) {
 			yield* generate(n - 1);
-			if(n % 2 === 0) Arrays.swap(perm, i, n - 1);
-			else Arrays.swap(perm, 0, n - 1);
+			if(n % 2 === 0) swap(perm, i, n - 1);
+			else swap(perm, 0, n - 1);
 		}
 	};
 	yield* generate(list.length);
@@ -872,7 +801,7 @@ export function* generateTuples<T>(list: List<T>, k: uint): Generator<T[]> {
 	tc.expectArrayLike(list);
 	tc.expectPositiveInteger(k);
 	const n = list.length;
-	for(const indices of Arrays.generateIndexPermutations(n, k)) {
+	for(const indices of generateIndexPermutations(n, k)) {
 		yield indices.map((index) => list[index]);
 	}
 }
@@ -1081,7 +1010,7 @@ export function insertSliceAt<T>(list: List<T>, listToInsert: List<T>, index: in
 export function isClean<T>(list: List<T>): boolean {
 	tc.expectArrayLike(list);
 	if(typeof list === "string") return true;
-	const names = Arrays.getOwnPropertyNames(list);
+	const names = getOwnPropertyNames(list);
 	if(names.length !== 1 || names[0] !== "length") return false;
 	const descriptor = Object.getOwnPropertyDescriptor(list, "length");
 	return (
@@ -1202,7 +1131,7 @@ export function maxPropertyValue<T extends any[] & {[key: string]: number}, K ex
 ): number {
 	tc.expectArrayLike(list);
 	tc.expectPropertyKey(propertyKey);
-	return Arrays.min(_map(list, (element) => element[propertyKey]));
+	return min(_map(list, (element) => element[propertyKey]));
 }
 
 /**
@@ -1281,7 +1210,7 @@ export function minPropertyValue<T, K extends NumberPropertyKeys<T>>(
 	tc.expectArrayLike(list);
 	tc.expectPropertyKey(propertyKey);
 	try {
-		return Arrays.min(_map(list, (element) => (<unknown>element[propertyKey]) as number));
+		return min(_map(list, (element) => (<unknown>element[propertyKey]) as number));
 	} catch (error) {
 		throw error;
 	}
@@ -1378,7 +1307,7 @@ export function replaceNgram<T>(list: List<T>, ngram: List<T>): List<T> {
 	tc.expectArrayLike(list);
 	tc.expectArrayLike(ngram);
 	const rv = _slice(list);
-	const indices = Arrays.indicesOfNgram(list, ngram);
+	const indices = indicesOfNgram(list, ngram);
 	for(const index of indices) {
 		for(let j = 0; j < ngram.length; j++) {
 			rv[index + j] = ngram[j];
@@ -1534,12 +1463,10 @@ export function swap<T>(list: MutableArrayLike<T>, i1: index, i2: index) {
  */
 export function zip<T>(...lists: List<T>[]): (T[][] | never[]) {
 	tc.expectArrayLikes(lists);
-	const minLength = Arrays.minPropertyValue(lists, "length") as number;
+	const minLength = minPropertyValue(lists, "length") as number;
 	const rv = new Array(minLength);
 	for(let i = 0; i < minLength; i++) {
 		rv[i] = _map(lists, (list) => list[i]);
 	}
 	return rv;
 }
-
-export default Arrays;

@@ -26,37 +26,7 @@
 
 import * as tc from "./tc.js";
 
-const JsonObjects = {
-	assoc,
-	buildPath,
-	clone,
-	commonKeys,
-	copy,
-	count,
-	cram,
-	deleteByPath,
-	entries,
-	equals,
-	every,
-	filterInPlace,
-	forEach,
-	fromEntries,
-	getByPath,
-	getTransitiveClosure,
-	intersection,
-	inverse,
-	inverseWith,
-	isEmpty,
-	keys,
-	pluck,
-	select,
-	setByPath,
-	submap,
-	swap,
-	transform,
-	values,
-	[Symbol.toStringTag]: "snowdash.JsonObjects",
-};
+export const [Symbol.toStringTag] = "snowdash.JsonObjects";
 
 
 /* bound call functions */
@@ -88,7 +58,7 @@ export function fromEntries(map) {
 export function assoc(object, key, value) {
 	tc.expectNonPrimitive(object);
 	tc.expectString(key);
-	const rv = JsonObjects.clone(object);
+	const rv = clone(object);
 	rv[key] = value;
 	return rv;
 }
@@ -575,7 +545,7 @@ export function select(object, predicate, thisArg = undefined) {
 export function setByPath(object, keys, value) {
 	tc.expectNonPrimitive(object);
 	tc.expectNonEmptyArrayLike(keys);
-	const parent = JsonObjects.getByPath(
+	const parent = getByPath(
 		object,
 		[].slice.call(keys, 0, -1),
 	);
@@ -668,5 +638,3 @@ export function transform(object, fn1, fn2, thisArg = undefined) {
 	}
 	return rv;
 }
-
-export default JsonObjects;

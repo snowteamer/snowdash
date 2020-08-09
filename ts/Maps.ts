@@ -354,7 +354,7 @@ export function isSubmapOf(map, otherMap) {
 export function isSupermapOf(map, otherMap) {
 	tc.expectMap(map);
 	tc.expectMap(otherMap);
-	return Maps.isSubmapOf(otherMap, map);
+	return isSubmapOf(otherMap, map);
 }
 
 /**
@@ -511,38 +511,4 @@ export function unextend(map, ...otherMaps) {
 	return map;
 }
 
-const Maps = {
-	every,
-	filter,
-	forEach,
-	map,
-	reduce,
-	some,
-	
-	clear,
-	copy,
-	createMap,
-	deleteAll,
-	equals,
-	extend,
-	fromPlainObject,
-	hasEntries,
-	hasEntry,
-	intersection,
-	inverse,
-	inverseWithSet,
-	isEmpty,
-	isSubmapOf,
-	isSupermapOf,
-	merge,
-	mergeWith,
-	setAll,
-	sortByKeys,
-	swap,
-	toBareObject,
-	toPlainObject,
-	unextend,
-	[Symbol.toStringTag]: "snowdash.Maps"
-};
-
-export default Maps;
+export const [Symbol.toStringTag] = "snowdash.Maps";

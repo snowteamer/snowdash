@@ -3,19 +3,15 @@
  */
 import * as tc from "./tc.js";
 
-const RegExps = {
-	alpha: /[a-zàáâãäçèéêëìíîïñòóôöùúûüýÿ]/i,
-	alphanum: /[\da-zàáâãäçèéêëìíîïñòóôöùúûüýÿ]/i,
-	digit: /\d/,
-	digits: /\d+/,
-	paragraphs: /\n\r?|\r/g,
-	whiteSpace: /\s/,
-	whiteSpaces: /\s+/,
+export const alpha = /[a-zàáâãäçèéêëìíîïñòóôöùúûüýÿ]/i;
+export const alphanum = /[\da-zàáâãäçèéêëìíîïñòóôöùúûüýÿ]/i;
+export const digit = /\d/;
+export const digits = /\d+/;
+export const paragraphs = /\n\r?|\r/g;
+export const whiteSpace = /\s/;
+export const whiteSpaces = /\s+/;
 
-	escapeString,
-	fromEndings,
-	[Symbol.toStringTag]: "snowdash.RegExps",
-};
+export const [Symbol.toStringTag] = "snowdash.RegExps";
 
 
 /**
@@ -42,5 +38,3 @@ export function fromEndings(endings: {[key: string]: any}, flags = ""): RegExp {
 	);
 	return new RegExp(pattern, flags);
 }
-
-export default RegExps;
