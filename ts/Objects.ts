@@ -21,8 +21,6 @@
 
 import * as tc from "./tc.js";
 
-export const [Symbol.toStringTag] = "snowdash.Objects";
-
 /* eslint-disable no-new-object, no-new-wrappers, unicorn/new-for-builtins */
 
 /**

@@ -7,7 +7,7 @@ type int = number;
 type uint = number;
  */
 import * as tc from "./tc.js";
-import Arrays from "./Arrays.js";
+import * as Arrays from "./Arrays.js";
 
 /**
  * @module snowdash/Sets

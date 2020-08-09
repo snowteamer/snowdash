@@ -7,9 +7,8 @@
  */
 
 import * as tc from "./tc.js";
-import Iterators from "./Iterators.js";
+import * as Iterators from "./Iterators.js";
 
-export const [Symbol.toStringTag] = "snowdash.Iterables";
 
 const call = Function.prototype.call.bind(Function.prototype.call);
 

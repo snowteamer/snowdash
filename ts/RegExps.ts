@@ -11,8 +11,6 @@ export const paragraphs = /\n\r?|\r/g;
 export const whiteSpace = /\s/;
 export const whiteSpaces = /\s+/;
 
-export const [Symbol.toStringTag] = "snowdash.RegExps";
-
 
 /**
  * @param {string} s

@@ -510,5 +510,3 @@ export function unextend(map, ...otherMaps) {
 	}
 	return map;
 }
-
-export const [Symbol.toStringTag] = "snowdash.Maps";

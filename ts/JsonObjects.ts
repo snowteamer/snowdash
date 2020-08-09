@@ -26,8 +26,6 @@
 
 import * as tc from "./tc.js";
 
-export const [Symbol.toStringTag] = "snowdash.JsonObjects";
-
 
 /* bound call functions */
 const unboundCall = Function.prototype.call;

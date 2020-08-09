@@ -22,8 +22,6 @@ export const cachesByFunction = new WeakMap();
 export const wrappedFunctionsByCache = new WeakMap();
 export const wrapperFunctionsByCache = new WeakMap();
 
-export const [Symbol.toStringTag] = "snowdash.Functions";
-
 // const call = Function.prototype.call.bind(Function.prototype.call);
 
 

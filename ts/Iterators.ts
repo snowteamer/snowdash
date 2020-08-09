@@ -12,8 +12,6 @@
 
 import * as tc from "./tc.js";
 
-export const [Symbol.toStringTag] = "snowdash.Iterators";
-
 
 /**
  * @template T

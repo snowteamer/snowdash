@@ -5,9 +5,7 @@ type uint = number;
 
 
 import * as tc from "./tc.js";
-import RegExps from "./RegExps.js";
-
-export const [Symbol.toStringTag] = "snowdash.Strings";
+import * as RegExps from "./RegExps.js";
 
 
 // Used by 'Strings.escape(s)'.

@@ -9,8 +9,6 @@ type uint = number;
 
 import * as tc from "./tc.js";
 
-export const [Symbol.toStringTag] = "snowdash.Numbers";
-
 
 /**
  * @memberof Numbers

@@ -80,8 +80,6 @@ type Predicate<T> = (arg: T) => boolean;
 import * as tc from "./tc.js";
 
 
-export const [Symbol.toStringTag] = "snowdash.Arrays";
-
 const call = Function.prototype.call.bind(Function.prototype.call);
 const _map: <T, U>(list: List<T>, mapfn: ArrayMappingFunction<T, U>) => U[] = (
 	Function.prototype.call.bind(Array.prototype.map)
