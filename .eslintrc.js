@@ -2,7 +2,7 @@
 module.exports = {
 	"extends": [
 		"eslint:recommended",
-		"plugin:jsdoc/recommended"
+		"plugin:jsdoc/recommended",
 	],
 	"env": {
 		"es6": true,
