@@ -27,7 +27,6 @@ module.exports = {
 		],
 		"jsdoc/check-types": 1, // rec
 		"jsdoc/implements-on-classes": 1, // rec
-		"jsdoc/newline-after-description": 1, // rec
 		"jsdoc/no-undefined-types": [
 			"warn", // rec
 			{
