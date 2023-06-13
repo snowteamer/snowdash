@@ -20,8 +20,6 @@
  *   when copying or slicing them.
  */
 
-/* eslint-disable unicorn/no-for-loop, unicorn/prefer-spread */
-
 /**
  * @typedef {number} int
  */

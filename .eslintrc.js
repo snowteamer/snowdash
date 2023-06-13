@@ -2,8 +2,7 @@
 module.exports = {
 	"extends": [
 		"eslint:recommended",
-		"plugin:jsdoc/recommended",
-		"plugin:unicorn/recommended",
+		"plugin:jsdoc/recommended"
 	],
 	"env": {
 		"es6": true,
@@ -12,7 +11,7 @@ module.exports = {
 		"ecmaVersion": 2020,
 		"sourceType": "module",
 	},
-	"plugins": ["jsdoc", "unicorn"],
+	"plugins": ["jsdoc"],
 	"root": true,
 	"rules": {
 		"jsdoc/check-alignment": 1, // rec
@@ -57,26 +56,6 @@ module.exports = {
 		"jsdoc/require-param-description": 0, // rec
 		"jsdoc/require-property-description": 0, // rec
 		"jsdoc/require-returns-description": 0, // rec
-
-		"unicorn/explicit-length-check": "off",
-		"unicorn/filename-case": "off",
-		"unicorn/no-nested-ternary": "off",
-		"unicorn/no-fn-reference-in-iterator": "off",
-		"unicorn/no-for-loop": "off",
-		"unicorn/no-reduce": "off",
-		"unicorn/no-useless-undefined": "off",
-		"unicorn/prefer-spread": "off",
-		"unicorn/prevent-abbreviations": [
-			"error",
-			{
-				"whitelist": {
-					"acc": true,
-					"arg": true,
-					"args": true,
-					"thisArg": true,
-				},
-			},
-		],
 
 		// Possible Errors
 		// http://eslint.org/docs/rules/#possible-errors

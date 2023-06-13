@@ -21,7 +21,7 @@
 
 import * as tc from "./tc.js";
 
-/* eslint-disable no-new-object, no-new-wrappers, unicorn/new-for-builtins */
+/* eslint-disable no-new-object, no-new-wrappers */
 
 /**
  * @type {Record<string, function(*): *>}
@@ -62,7 +62,7 @@ const factoriesByTag = {
 	"WeakSet": () => new WeakSet(),
 };
 
-/* eslint-enable no-new-object, no-new-wrappers, unicorn/new-for-builtins */
+/* eslint-enable no-new-object, no-new-wrappers */
 
 /**
  * A stricter version of the native 'Object.assign()' method,
