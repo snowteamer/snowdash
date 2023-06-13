@@ -26,7 +26,7 @@ for(const testCase of testCases) {
 	if(actual !== expected) {
 		console.warn(
 			"Test failed in 'JsonObjects.equals()': for argument '%s', expected '%s', but got '%s'.",
-			Json.stringify(testCase),
+			JSON.stringify(testCase),
 			expected,
 			actual
 		);
@@ -40,7 +40,7 @@ for(const testCase of testCases) {
 	if(actual !== expected) {
 		console.warn(
 			"Test failed in 'JsonObjects.equals()': for argument '%s', expected '%s', but got '%s'.",
-			Json.stringify(testCase),
+			JSON.stringify(testCase),
 			expected,
 			actual
 		);
@@ -54,7 +54,7 @@ for(const testCase of testCases) {
 	if(actual !== expected) {
 		console.warn(
 			"Test failed in 'JsonObjects.equals()': for argument '%s', expected '%s', but got '%s'.",
-			Json.stringify(testCase),
+			JSON.stringify(testCase),
 			expected,
 			actual
 		);
@@ -68,7 +68,7 @@ for(const testCase of testCases) {
 	if(actual !== expected) {
 		console.warn(
 			"Test failed in 'JsonObjects.equals()': for argument '%s', expected '%s', but got '%s'.",
-			Json.stringify(testCase),
+			JSON.stringify(testCase),
 			expected,
 			actual
 		);
