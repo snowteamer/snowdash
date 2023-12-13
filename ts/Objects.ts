@@ -186,17 +186,20 @@ export function clone(
 		if(setOfVisitedPrototypes.has(node)) return node;
 
 		const proto = Reflect.getPrototypeOf(node);
-		setOfVisitedPrototypes.add(proto);
+		let rv;
+		if (proto === null) {
+			rv = Object.create(null);
+		} else {
+			setOfVisitedPrototypes.add(proto);
+			const tag = getTag(node);
+			const factory = factoriesByTag[tag];
+			rv = (factory ? factory(node) : Object.create(proto));
 
-		const tag = getTag(node);
-		const factory = factoriesByTag[tag];
-		const rv = (factory ? factory(node) : Object.create(proto));
-
-		if(Object.getPrototypeOf(rv) !== proto) {
-			Reflect.setPrototypeOf(rv, proto);
+			if(Object.getPrototypeOf(rv) !== proto) {
+				Reflect.setPrototypeOf(rv, proto);
+			}
+			clonesByVisitedObject.set(node, rv);
 		}
-		clonesByVisitedObject.set(node, rv);
-
 		const keys = (
 			ignoreSymbols
 			? Object.getOwnPropertyNames(node)
