@@ -2,14 +2,10 @@
  * Snowdash - Static utilities for core EcmaScript language types.
  *
  * Written in TypeScript.
- *
- * @file index.js
- *
+ * @file Index.js.
  * @author snowteamer <https://github.com/snowteamer>
- *
  * @license AGPL-3.0
  */
-
 export * as Arrays from "./Arrays.js";
 export * as Functions from "./Functions.js";
 export * as Iterables from "./Iterables.js";

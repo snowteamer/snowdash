@@ -4,7 +4,6 @@
 
 # Dist
 cjs
-esm
 types
 
 # Logs

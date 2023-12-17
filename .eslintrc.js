@@ -5,17 +5,16 @@ module.exports = {
 		"plugin:jsdoc/recommended",
 	],
 	"env": {
-		"es6": true,
+		"es2024": true,
 	},
 	"parserOptions": {
-		"ecmaVersion": 2020,
 		"sourceType": "module",
 	},
 	"plugins": ["jsdoc"],
 	"root": true,
 	"rules": {
 		"jsdoc/check-alignment": 1, // rec
-		"jsdoc/check-examples": 1,
+		"jsdoc/check-examples": 0,
 		"jsdoc/check-param-names": 1, // rec
 		"jsdoc/check-tag-names": [
 			1, // rec
@@ -28,7 +27,7 @@ module.exports = {
 		"jsdoc/check-types": 1, // rec
 		"jsdoc/implements-on-classes": 1, // rec
 		"jsdoc/no-undefined-types": [
-			"warn", // rec
+			"off", // rec is "warn"
 			{
 				// Some TypeScript types.
 				"definedTypes": [
@@ -54,6 +53,7 @@ module.exports = {
 		"jsdoc/require-hyphen-before-param-description": 1,
 		"jsdoc/require-param-description": 0, // rec
 		"jsdoc/require-property-description": 0, // rec
+		"jsdoc/require-returns": 0, // rec is 1
 		"jsdoc/require-returns-description": 0, // rec
 
 		// Possible Errors
@@ -128,7 +128,7 @@ module.exports = {
 		"eol-last": "error",
 		"indent": [
 			"error",
-			"tab", // 4
+			4,
 			{
 				"MemberExpression": 0, // 1
 				"SwitchCase": 1, // 0
@@ -140,13 +140,6 @@ module.exports = {
 			"error",
 			{
 				"after": true,
-				"overrides": {
-					"catch": { after: false },
-					"for": {after: false },
-					"if": { after: false },
-					"switch": { after: false },
-					"while": { after: false },
-				},
 			},
 		],
 		"linebreak-style": [
@@ -155,6 +148,7 @@ module.exports = {
 		],
 		"max-len": [
 			"error",
+			100,
 			{
 				ignoreComments: false,
 				ignoreRegExpLiterals: true,
@@ -171,7 +165,7 @@ module.exports = {
 		"no-plusplus": "off",
 		"no-tabs": [
 			"error",
-			{"allowIndentationTabs": true}, // {"allowIndentationTabs": false}
+			{"allowIndentationTabs": false},
 		],
 		"no-trailing-spaces": [
 			"error",

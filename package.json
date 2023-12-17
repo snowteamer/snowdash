@@ -9,7 +9,9 @@
 	"description": "Static utilities for JavaScript",
 	"devDependencies": {
 		"@types/node": "^20.3.1",
-		"eslint-plugin-jsdoc": "^46.2.6"
+		"eslint": "^8.55.0",
+		"eslint-plugin-jsdoc": "^46.2.6",
+		"typescript": "^5.3.3"
 	},
 	"peerDependencies": {
 		"eslint": "^8.42.0",
@@ -28,7 +30,8 @@
 		"url": "git+https://github.com/snowteamer/snowdash.git"
 	},
 	"scripts": {
-		"lint": "eslint --report-unused-disable-directives ./",
+		"lint": "eslint --report-unused-disable-directives ./esm",
+		"lintfix": "eslint --fix --report-unused-disable-directives ./esm",
 		"build:all": "tsc -b tsconfig.cjs.json tsconfig.esm.json tsconfig.types.json",
 		"build:cjs": "tsc -p tsconfig.cjs.json",
 		"build:esm": "tsc -p tsconfig.esm.json",
